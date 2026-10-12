@@ -1,0 +1,80 @@
+# Deploy to Namecheap shared hosting over SSH on every push to main.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   SSH_HOST     server hostname or IP (cPanel → "Server Information" → Shared IP)
+#   SSH_PORT     21098 on Namecheap shared hosting
+#   SSH_USER     cPanel username
+#   SSH_KEY      private key whose public half is authorised in cPanel → SSH Access
+#   DEPLOY_PATH  absolute target dir, e.g. /home/<cpaneluser>/public_html
+#
+# Server-only files are never touched: inc/config.local.php (keys), storage/
+# (sessions, SQLite, logs, outputs) and ops-dashboard runtime cache/data.
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint PHP
+        run: find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l > /dev/null
+
+      - name: Set up SSH
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Rsync to server
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          # No --delete: the target may hold files this repo doesn't own.
+          rsync -az \
+            -e "ssh -p $SSH_PORT -i ~/.ssh/id_deploy" \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude '.gitignore' \
+            --exclude '.gitattributes' \
+            --exclude 'dev-router.php' \
+            --exclude 'LOCAL-SETUP.md' \
+            --exclude 'inc/config.local.php' \
+            --exclude 'storage/' \
+            --exclude 'ops-dashboard/cache/' \
+            --exclude 'ops-dashboard/data/' \
+            --exclude '.well-known/' \
+            --exclude 'cgi-bin/' \
+            --exclude 'error_log' \
+            ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
+
+      - name: Ensure runtime dirs exist
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          ssh -p "$SSH_PORT" -i ~/.ssh/id_deploy "$SSH_USER@$SSH_HOST" "
+            cd '$DEPLOY_PATH' &&
+            mkdir -p storage ops-dashboard/cache ops-dashboard/data &&
+            [ -f storage/.htaccess ] || printf 'Require all denied\n' > storage/.htaccess
+          "
