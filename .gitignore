@@ -1,0 +1,15 @@
+/dev-router.php
+/.qodo/
+/.kilocode/
+/inc/config.local.php
+/storage/streamlive-local.sqlite
+/storage/streamlive-local.sqlite-shm
+/storage/streamlive-local.sqlite-wal
+/storage/provider-secrets.json
+
+# Runtime data — never commit (lives only on each server)
+/storage/*
+!/storage/.htaccess
+/ops-dashboard/data/*.json.bak
+*.log
+/.claude/

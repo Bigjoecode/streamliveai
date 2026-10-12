@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Mirrored from sleekai.com.ng/privacy by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:06 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="uKDa2mNsXgNrAjWHvf8CXCvak3qQM6vhPXSCiODL">
+    <title>Privacy Policy — StreamLive AI</title>
+
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png">
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com/">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com/"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ink: '#14171C',
+                        surface: '#1C2027',
+                        border: '#2A2F38',
+                        muted: '#9AA3AF',
+                        paper: '#F5F6F7',
+                        signal: '#F2B705',
+                        tally: '#E5484D',
+                        reel: '#2FBF9F'
+                    },
+                    fontFamily: {
+                        display: ['Fraunces', 'Georgia', 'serif'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'ui-monospace', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #14171C; }
+        ::selection { background: #F2B705; color: #14171C; }
+        .tally-dot { box-shadow: 0 0 0 3px rgba(242, 183, 5, 0.15); }
+        .tally-dot.live { box-shadow: 0 0 0 4px rgba(229, 72, 77, 0.18); }
+
+        /* --- Futuristic layer: ambient glow field ------------------------ */
+        .glow-field { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+        .glow-orb { position: absolute; border-radius: 9999px; filter: blur(90px); animation: drift 22s ease-in-out infinite; }
+        .glow-orb.a { width: 520px; height: 520px; top: -160px; left: -120px; background: radial-gradient(circle, rgba(242,183,5,0.20), transparent 70%); }
+        .glow-orb.b { width: 460px; height: 460px; top: 20%; right: -160px; background: radial-gradient(circle, rgba(47,191,159,0.14), transparent 70%); animation-delay: -8s; }
+        .glow-orb.c { width: 420px; height: 420px; bottom: -180px; left: 30%; background: radial-gradient(circle, rgba(242,183,5,0.10), transparent 70%); animation-delay: -14s; }
+        @keyframes drift {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -25px) scale(1.08); }
+            66% { transform: translate(-25px, 20px) scale(0.94); }
+        }
+        @media (prefers-reduced-motion: reduce) { .glow-orb { animation: none; } }
+
+        /* Faint circuit-grid texture */
+        .grid-overlay {
+            background-image:
+                linear-gradient(rgba(242,183,5,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(242,183,5,0.05) 1px, transparent 1px);
+            background-size: 56px 56px;
+            -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+            mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+        }
+
+        /* Glass surface */
+        .glass {
+            background: rgba(28, 32, 39, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .nav-blur {
+            background: rgba(20, 23, 28, 0.72);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+
+        /* Hover-glow card */
+        .glow-card { box-shadow: 0 0 22px rgba(242, 183, 5, 0.06); transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease; }
+        .glow-card:hover { box-shadow: 0 0 44px rgba(242, 183, 5, 0.16); border-color: rgba(242, 183, 5, 0.35); transform: translateY(-3px); }
+
+        /* Gradient headline text */
+        .gradient-text {
+            background: linear-gradient(120deg, #F5F6F7 20%, #F2B705 55%, #F5F6F7 85%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* Glowing button */
+        .btn-glow { box-shadow: 0 0 22px rgba(242, 183, 5, 0.28); transition: box-shadow 0.25s ease, transform 0.15s ease; }
+        .btn-glow:hover { box-shadow: 0 0 36px rgba(242, 183, 5, 0.48); transform: translateY(-1px); }
+
+        /* Fade/rise-in on scroll */
+        .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .reveal.in { opacity: 1; transform: translateY(0); }
+
+        /* Homepage hero: gradient headline treatment */
+        .hero-shine {
+            background: linear-gradient(115deg, #F2B705 0%, #FBDE7A 45%, #F2B705 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        /* Homepage hero: floating tool-preview cards, ambient drift matching .glow-orb's existing motion language */
+        .hero-card { animation: hero-float 6.5s ease-in-out infinite; }
+        .hero-card-a { animation-duration: 6.5s; }
+        .hero-card-c { animation-duration: 5.8s; animation-delay: -4s; }
+        @keyframes hero-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-14px); }
+        }
+        /* hero-card-b needs translateX + rotate baked into its own keyframes
+           (not the shared .hero-card transform) — a CSS animation's
+           transform fully replaces any transform set elsewhere rather than
+           combining with it, so its resting rotation has to live here too. */
+        .hero-card-b { animation: hero-float-b 7s ease-in-out infinite -2s; }
+        @keyframes hero-float-b {
+            0%, 100% { transform: translateX(-50%) rotate(-1deg) translateY(0); }
+            50% { transform: translateX(-50%) rotate(-1deg) translateY(-14px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .hero-card, .hero-card-b { animation: none; transform: translateY(0); }
+            .hero-card-b { transform: translateX(-50%) rotate(-1deg); }
+        }
+
+        /* Homepage hero: "now live" status pill */
+        .live-pulse .h-1\.5 { animation: live-pulse-dot 1.8s ease-in-out infinite; }
+        @keyframes live-pulse-dot {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) { .live-pulse .h-1\.5 { animation: none; } }
+    </style>
+    </head>
+<body class="min-h-screen bg-ink font-sans text-paper antialiased">
+    <div class="glow-field" aria-hidden="true">
+        <div class="glow-orb a"></div>
+        <div class="glow-orb b"></div>
+        <div class="glow-orb c"></div>
+    </div>
+    <div class="relative z-10">
+            <header class="nav-blur sticky top-0 z-20 border-b border-border">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 md:px-12">
+        <a href="index.html" class="flex items-center gap-2">
+            <span class="h-2.5 w-2.5 rounded-full bg-signal tally-dot"></span>
+            <span class="font-display text-lg tracking-tight">StreamLive AI</span>
+        </a>
+
+        <nav class="hidden items-center gap-7 text-sm text-muted md:flex">
+                            <a href="index.html"
+                   class="transition hover:text-paper ">
+                    Home
+                </a>
+                            <a href="features.html"
+                   class="transition hover:text-paper ">
+                    Features
+                </a>
+                            <a href="how-it-works.html"
+                   class="transition hover:text-paper ">
+                    How It Works
+                </a>
+                            <a href="pricing.html"
+                   class="transition hover:text-paper ">
+                    Pricing
+                </a>
+                            <a href="about.html"
+                   class="transition hover:text-paper ">
+                    About Us
+                </a>
+                    </nav>
+
+        <div class="flex items-center gap-4">
+            <a href="login" class="hidden text-sm text-muted hover:text-paper sm:inline">Log in</a>
+            <a href="register" class="btn-glow rounded-sm bg-signal px-4 py-2 text-sm font-medium text-ink hover:brightness-95">
+                Create account
+            </a>
+        </div>
+    </div>
+
+    
+    <nav class="flex items-center gap-5 overflow-x-auto border-t border-border px-6 py-2.5 text-xs text-muted md:hidden">
+                    <a href="index.html" class="whitespace-nowrap ">
+                Home
+            </a>
+                    <a href="features.html" class="whitespace-nowrap ">
+                Features
+            </a>
+                    <a href="how-it-works.html" class="whitespace-nowrap ">
+                How It Works
+            </a>
+                    <a href="pricing.html" class="whitespace-nowrap ">
+                Pricing
+            </a>
+                    <a href="about.html" class="whitespace-nowrap ">
+                About Us
+            </a>
+            </nav>
+</header>
+    <main>
+        <div class="mx-auto max-w-3xl px-6 py-16 md:px-12">
+    <p class="font-mono text-xs uppercase tracking-wide text-signal">Legal</p>
+    <h1 class="mt-3 font-display text-4xl">Privacy Policy</h1>
+    <p class="mt-2 text-sm text-muted">Last updated: September 19, 2026</p>
+
+    <div class="prose-legal mt-10 space-y-8 text-muted">
+        <section>
+            <h2 class="font-display text-xl text-paper">1. What this covers</h2>
+            <p class="mt-2 leading-relaxed">
+                This policy explains what personal data StreamLive AI collects, why, and what rights you have over it.
+                Because our Services involve faces and voices, we've tried to be direct about exactly what
+                happens to that specific kind of data, rather than burying it in generic language.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display text-xl text-paper">2. Data we collect</h2>
+            <ul class="mt-2 list-disc space-y-1 pl-5">
+                <li><strong class="text-paper">Account data:</strong> name, email address, and password (stored as a one-way hash, never in plain text), or your Google/Facebook profile information if you sign up that way.</li>
+                <li><strong class="text-paper">Face and voice data:</strong> photos, voice samples, and recordings you upload to use a specific tool. These are processed to generate your output and, for Voice Cloning specifically, a voice model is created with our AI provider (ElevenLabs) to fulfill your request.</li>
+                <li><strong class="text-paper">Payment data:</strong> we never see or store your card number. Paystack handles payment details directly and only passes us confirmation that a payment succeeded.</li>
+                <li><strong class="text-paper">Usage data:</strong> which tools you use, job history, and credit transactions, so your dashboard and billing history work correctly.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="font-display text-xl text-paper">3. Why we collect it</h2>
+            <p class="mt-2 leading-relaxed">
+                To provide the Services you request, to bill you correctly, to detect and act on violations of
+                our Terms of Service (including reviewing flagged content), to communicate with you about your
+                account (password resets, job completion, purchase confirmations), and to improve the platform.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display text-xl text-paper">4. Who we share it with</h2>
+            <p class="mt-2 leading-relaxed">We share data only where necessary to run the Services:</p>
+            <ul class="mt-2 list-disc space-y-1 pl-5">
+                <li><strong class="text-paper">ElevenLabs</strong> — processes voice samples and text for Voice Cloning, Text to Speech, Voice Isolator, and Voice Changer.</li>
+                <li><strong class="text-paper">Decart</strong> — processes reference face images and live video for Livestream (this runs as a direct connection between your browser and Decart, not routed through our server).</li>
+                <li><strong class="text-paper">Paystack</strong> — processes payment information for credit purchases.</li>
+                <li><strong class="text-paper">Google / Facebook</strong> — if you use social sign-in, they confirm your identity and share your basic profile information with us.</li>
+            </ul>
+            <p class="mt-3 leading-relaxed">
+                We do not sell your personal data, your face, or your voice to anyone, for any purpose.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display text-xl text-paper">5. Data retention</h2>
+            <p class="mt-2 leading-relaxed">
+                We retain account and job history data for as long as your account is active, so your dashboard,
+                billing history, and job history continue to work. Uploaded voice samples are stored privately
+                and are not shared beyond the AI provider used to process them. You can request deletion of your
+                account and associated data (see Section 7).
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display text-xl text-paper">6. Content moderation</h2>
+            <p class="mt-2 leading-relaxed">
+                Jobs that use a real face or voice can be flagged for review by our team. Reviewing a flag may
+                involve a human looking at the job's output and metadata to assess whether it violates our
+                Terms of Service. This is limited to jobs that are flagged, not a review of everything generated
+                on the platform.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display text-xl text-paper">7. Your rights</h2>
+            <p class="mt-2 leading-relaxed">
+                You can request access to, correction of, or deletion of your personal data at any time by
+                contacting us at <a href="cdn-cgi/l/email-protection.html#c7afa2ababa887b4aba2a2aca6aee9a4a8aae9a9a0" class="text-signal hover:underline"><span class="__cf_email__" data-cfemail="f69e939a9a99b6859a93939d979fd895999bd89891">[email&#160;protected]</span></a>.
+                We'll respond within a reasonable timeframe and in line with applicable data protection law,
+                including the Nigeria Data Protection Act.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display text-xl text-paper">8. Cookies and sessions</h2>
+            <p class="mt-2 leading-relaxed">
+                We use a session cookie to keep you logged in and to remember referral links you've followed.
+                We don't use third-party advertising trackers.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display text-xl text-paper">9. Changes to this policy</h2>
+            <p class="mt-2 leading-relaxed">
+                We may update this policy from time to time. Material changes will be reflected by updating the
+                "Last updated" date above.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display text-xl text-paper">10. Contact</h2>
+            <p class="mt-2 leading-relaxed">
+                Questions about this policy or your data can be sent to <a href="cdn-cgi/l/email-protection.html#b9d1dcd5d5d6f9cad5dcdcd2d8d097dad6d497d7de" class="text-signal hover:underline"><span class="__cf_email__" data-cfemail="fc9499909093bc8f909999979d95d29f9391d2929b">[email&#160;protected]</span></a>.
+            </p>
+        </section>
+    </div>
+</div>
+    </main>
+    <footer class="relative border-t border-border px-6 py-14 md:px-12">
+    <div class="mx-auto grid max-w-6xl gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div>
+            <div class="flex items-center gap-2">
+                <span class="h-2.5 w-2.5 rounded-full bg-signal tally-dot"></span>
+                <span class="font-display text-lg tracking-tight">StreamLive AI</span>
+            </div>
+            <p class="mt-3 max-w-xs text-sm text-muted">
+                One control room for powerful AI tools - build for creation, transformation, and real-time experiences.
+            </p>
+        </div>
+
+        <div>
+            <p class="font-mono text-xs uppercase tracking-wide text-muted">Product</p>
+            <ul class="mt-3 space-y-2 text-sm text-muted">
+                <li><a href="features.html" class="hover:text-paper">Features</a></li>
+                <li><a href="how-it-works.html" class="hover:text-paper">How It Works</a></li>
+                <li><a href="pricing.html" class="hover:text-paper">Pricing</a></li>
+            </ul>
+        </div>
+
+        <div>
+            <p class="font-mono text-xs uppercase tracking-wide text-muted">Company</p>
+            <ul class="mt-3 space-y-2 text-sm text-muted">
+                <li><a href="about.html" class="hover:text-paper">About Us</a></li>
+                <li><a href="contact.html" class="hover:text-paper">Contact</a></li>
+                <li><a href="register" class="hover:text-paper">Create account</a></li>
+                <li><a href="login" class="hover:text-paper">Log in</a></li>
+            </ul>
+        </div>
+
+        <div>
+            <p class="font-mono text-xs uppercase tracking-wide text-muted">Trust</p>
+            <ul class="mt-3 space-y-2 text-sm text-muted">
+                <li>Consent-logged jobs</li>
+                <li>No auto-renewal billing</li>
+                <li><a href="terms.html" class="hover:text-paper">Terms of Service</a></li>
+                <li><a href="privacy.html" class="hover:text-paper">Privacy Policy</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mx-auto mt-12 max-w-6xl border-t border-border pt-6 text-sm text-muted">
+        © 2026 StreamLive AI. Built to make AI simpler, faster, and more accessible.
+    </div>
+</footer>
+    </div>
+        <script data-cfasync="false" src="cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        // Lightweight reveal-on-scroll for elements marked .reveal — degrades
+        // gracefully (everything's just visible) if IntersectionObserver isn't available.
+        if ('IntersectionObserver' in window) {
+            document.addEventListener('DOMContentLoaded', function () {
+                var io = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (entry) {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('in');
+                            io.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.15 });
+                document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+            });
+        } else {
+            document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
+        }
+    </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"97ad44cc531f410e9330a892a6c3f2cf","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body>
+
+<!-- Mirrored from sleekai.com.ng/privacy by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:06 GMT -->
+</html>

@@ -1,0 +1,7 @@
+sample-*
+*.log
+*.csv
+*.json
+*.gz
+!README.md
+!.htaccess

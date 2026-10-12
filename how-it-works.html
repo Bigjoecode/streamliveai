@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Mirrored from sleekai.com.ng/how-it-works by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:04 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="uKDa2mNsXgNrAjWHvf8CXCvak3qQM6vhPXSCiODL">
+    <title>How It Works — StreamLive AI</title>
+
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png">
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com/">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com/"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ink: '#14171C',
+                        surface: '#1C2027',
+                        border: '#2A2F38',
+                        muted: '#9AA3AF',
+                        paper: '#F5F6F7',
+                        signal: '#F2B705',
+                        tally: '#E5484D',
+                        reel: '#2FBF9F'
+                    },
+                    fontFamily: {
+                        display: ['Fraunces', 'Georgia', 'serif'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'ui-monospace', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #14171C; }
+        ::selection { background: #F2B705; color: #14171C; }
+        .tally-dot { box-shadow: 0 0 0 3px rgba(242, 183, 5, 0.15); }
+        .tally-dot.live { box-shadow: 0 0 0 4px rgba(229, 72, 77, 0.18); }
+
+        /* --- Futuristic layer: ambient glow field ------------------------ */
+        .glow-field { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+        .glow-orb { position: absolute; border-radius: 9999px; filter: blur(90px); animation: drift 22s ease-in-out infinite; }
+        .glow-orb.a { width: 520px; height: 520px; top: -160px; left: -120px; background: radial-gradient(circle, rgba(242,183,5,0.20), transparent 70%); }
+        .glow-orb.b { width: 460px; height: 460px; top: 20%; right: -160px; background: radial-gradient(circle, rgba(47,191,159,0.14), transparent 70%); animation-delay: -8s; }
+        .glow-orb.c { width: 420px; height: 420px; bottom: -180px; left: 30%; background: radial-gradient(circle, rgba(242,183,5,0.10), transparent 70%); animation-delay: -14s; }
+        @keyframes drift {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -25px) scale(1.08); }
+            66% { transform: translate(-25px, 20px) scale(0.94); }
+        }
+        @media (prefers-reduced-motion: reduce) { .glow-orb { animation: none; } }
+
+        /* Faint circuit-grid texture */
+        .grid-overlay {
+            background-image:
+                linear-gradient(rgba(242,183,5,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(242,183,5,0.05) 1px, transparent 1px);
+            background-size: 56px 56px;
+            -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+            mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+        }
+
+        /* Glass surface */
+        .glass {
+            background: rgba(28, 32, 39, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .nav-blur {
+            background: rgba(20, 23, 28, 0.72);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+
+        /* Hover-glow card */
+        .glow-card { box-shadow: 0 0 22px rgba(242, 183, 5, 0.06); transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease; }
+        .glow-card:hover { box-shadow: 0 0 44px rgba(242, 183, 5, 0.16); border-color: rgba(242, 183, 5, 0.35); transform: translateY(-3px); }
+
+        /* Gradient headline text */
+        .gradient-text {
+            background: linear-gradient(120deg, #F5F6F7 20%, #F2B705 55%, #F5F6F7 85%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* Glowing button */
+        .btn-glow { box-shadow: 0 0 22px rgba(242, 183, 5, 0.28); transition: box-shadow 0.25s ease, transform 0.15s ease; }
+        .btn-glow:hover { box-shadow: 0 0 36px rgba(242, 183, 5, 0.48); transform: translateY(-1px); }
+
+        /* Fade/rise-in on scroll */
+        .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .reveal.in { opacity: 1; transform: translateY(0); }
+
+        /* Homepage hero: gradient headline treatment */
+        .hero-shine {
+            background: linear-gradient(115deg, #F2B705 0%, #FBDE7A 45%, #F2B705 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        /* Homepage hero: floating tool-preview cards, ambient drift matching .glow-orb's existing motion language */
+        .hero-card { animation: hero-float 6.5s ease-in-out infinite; }
+        .hero-card-a { animation-duration: 6.5s; }
+        .hero-card-c { animation-duration: 5.8s; animation-delay: -4s; }
+        @keyframes hero-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-14px); }
+        }
+        /* hero-card-b needs translateX + rotate baked into its own keyframes
+           (not the shared .hero-card transform) — a CSS animation's
+           transform fully replaces any transform set elsewhere rather than
+           combining with it, so its resting rotation has to live here too. */
+        .hero-card-b { animation: hero-float-b 7s ease-in-out infinite -2s; }
+        @keyframes hero-float-b {
+            0%, 100% { transform: translateX(-50%) rotate(-1deg) translateY(0); }
+            50% { transform: translateX(-50%) rotate(-1deg) translateY(-14px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .hero-card, .hero-card-b { animation: none; transform: translateY(0); }
+            .hero-card-b { transform: translateX(-50%) rotate(-1deg); }
+        }
+
+        /* Homepage hero: "now live" status pill */
+        .live-pulse .h-1\.5 { animation: live-pulse-dot 1.8s ease-in-out infinite; }
+        @keyframes live-pulse-dot {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) { .live-pulse .h-1\.5 { animation: none; } }
+    </style>
+    </head>
+<body class="min-h-screen bg-ink font-sans text-paper antialiased">
+    <div class="glow-field" aria-hidden="true">
+        <div class="glow-orb a"></div>
+        <div class="glow-orb b"></div>
+        <div class="glow-orb c"></div>
+    </div>
+    <div class="relative z-10">
+            <header class="nav-blur sticky top-0 z-20 border-b border-border">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 md:px-12">
+        <a href="index.html" class="flex items-center gap-2">
+            <span class="h-2.5 w-2.5 rounded-full bg-signal tally-dot"></span>
+            <span class="font-display text-lg tracking-tight">StreamLive AI</span>
+        </a>
+
+        <nav class="hidden items-center gap-7 text-sm text-muted md:flex">
+                            <a href="index.html"
+                   class="transition hover:text-paper ">
+                    Home
+                </a>
+                            <a href="features.html"
+                   class="transition hover:text-paper ">
+                    Features
+                </a>
+                            <a href="how-it-works.html"
+                   class="transition hover:text-paper text-paper">
+                    How It Works
+                </a>
+                            <a href="pricing.html"
+                   class="transition hover:text-paper ">
+                    Pricing
+                </a>
+                            <a href="about.html"
+                   class="transition hover:text-paper ">
+                    About Us
+                </a>
+                    </nav>
+
+        <div class="flex items-center gap-4">
+            <a href="login" class="hidden text-sm text-muted hover:text-paper sm:inline">Log in</a>
+            <a href="register" class="btn-glow rounded-sm bg-signal px-4 py-2 text-sm font-medium text-ink hover:brightness-95">
+                Create account
+            </a>
+        </div>
+    </div>
+
+    
+    <nav class="flex items-center gap-5 overflow-x-auto border-t border-border px-6 py-2.5 text-xs text-muted md:hidden">
+                    <a href="index.html" class="whitespace-nowrap ">
+                Home
+            </a>
+                    <a href="features.html" class="whitespace-nowrap ">
+                Features
+            </a>
+                    <a href="how-it-works.html" class="whitespace-nowrap text-signal">
+                How It Works
+            </a>
+                    <a href="pricing.html" class="whitespace-nowrap ">
+                Pricing
+            </a>
+                    <a href="about.html" class="whitespace-nowrap ">
+                About Us
+            </a>
+            </nav>
+</header>
+    <main>
+        
+<section class="relative px-6 pb-4 pt-16 md:px-12 md:pt-24">
+    <div class="grid-overlay absolute inset-x-0 top-0 h-[420px]" aria-hidden="true"></div>
+    <div class="relative mx-auto max-w-3xl text-center">
+        <p class="font-mono text-xs uppercase tracking-wide text-signal">How it works</p>
+        <h1 class="gradient-text mt-4 font-display text-5xl leading-[1.08] tracking-tight md:text-6xl">
+            From sign-up to output
+        </h1>
+        <p class="mx-auto mt-5 max-w-lg text-muted">
+            Four steps, most of them under a minute. Here's the whole path a job takes.
+        </p>
+    </div>
+</section>
+
+<section class="relative px-6 py-16 md:px-12">
+    <div class="mx-auto max-w-3xl">
+        
+        <div class="relative">
+            <div class="absolute left-[19px] top-2 bottom-2 w-px bg-gradient-to-b from-signal/60 via-border to-transparent md:left-[23px]" aria-hidden="true"></div>
+
+            <div class="space-y-10">
+                                    <div class="reveal relative flex gap-6">
+                        <div class="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-signal font-mono text-sm font-medium text-ink shadow-[0_0_24px_rgba(242,183,5,0.4)] md:h-12 md:w-12">
+                            1
+                        </div>
+                        <div class="glass glow-card flex-1 rounded-lg p-6">
+                            <h3 class="font-display text-xl">Create your account</h3>
+                            <p class="mt-2 text-muted">Sign up for StreamLive AI in just a few moments. Enter your details, create your account and get instant access to the platform.</p>
+                        </div>
+                    </div>
+                                    <div class="reveal relative flex gap-6">
+                        <div class="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-signal font-mono text-sm font-medium text-ink shadow-[0_0_24px_rgba(242,183,5,0.4)] md:h-12 md:w-12">
+                            2
+                        </div>
+                        <div class="glass glow-card flex-1 rounded-lg p-6">
+                            <h3 class="font-display text-xl">Buy a credit pack (optional, any time)</h3>
+                            <p class="mt-2 text-muted">Pick a pack, pay with Paystack, and your balance updates as soon as the payment confirms.</p>
+                        </div>
+                    </div>
+                                    <div class="reveal relative flex gap-6">
+                        <div class="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-signal font-mono text-sm font-medium text-ink shadow-[0_0_24px_rgba(242,183,5,0.4)] md:h-12 md:w-12">
+                            3
+                        </div>
+                        <div class="glass glow-card flex-1 rounded-lg p-6">
+                            <h3 class="font-display text-xl">Pick a tool and upload your input</h3>
+                            <p class="mt-2 text-muted">Face swap, voice clone, image-to-video, or image edit — each has its own simple form for the photo, audio, or text it needs.</p>
+                        </div>
+                    </div>
+                                    <div class="reveal relative flex gap-6">
+                        <div class="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-signal font-mono text-sm font-medium text-ink shadow-[0_0_24px_rgba(242,183,5,0.4)] md:h-12 md:w-12">
+                            4
+                        </div>
+                        <div class="glass glow-card flex-1 rounded-lg p-6">
+                            <h3 class="font-display text-xl">The job runs and credits are debited</h3>
+                            <p class="mt-2 text-muted">One-shot tools debit a flat cost up front; livestream sessions are metered per second and debited when you end the session.</p>
+                        </div>
+                    </div>
+                            </div>
+        </div>
+    </div>
+</section>
+
+<section class="relative border-t border-border px-6 py-20 text-center md:px-12">
+    <h2 class="font-display text-3xl md:text-4xl">That's the whole loop</h2>
+    <p class="mx-auto mt-3 max-w-md text-muted">No hidden steps, no subscription trap — just credits in, output out, with a record of both.</p>
+    <div class="mt-8 flex justify-center gap-4">
+        <a href="register" class="btn-glow rounded-sm bg-signal px-7 py-3 font-medium text-ink hover:brightness-95">Start free</a>
+        <a href="features.html" class="rounded-sm border border-border px-7 py-3 font-medium text-paper transition hover:border-signal/50">Explore features</a>
+    </div>
+</section>
+    </main>
+    <footer class="relative border-t border-border px-6 py-14 md:px-12">
+    <div class="mx-auto grid max-w-6xl gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div>
+            <div class="flex items-center gap-2">
+                <span class="h-2.5 w-2.5 rounded-full bg-signal tally-dot"></span>
+                <span class="font-display text-lg tracking-tight">StreamLive AI</span>
+            </div>
+            <p class="mt-3 max-w-xs text-sm text-muted">
+                One control room for powerful AI tools - build for creation, transformation, and real-time experiences.
+            </p>
+        </div>
+
+        <div>
+            <p class="font-mono text-xs uppercase tracking-wide text-muted">Product</p>
+            <ul class="mt-3 space-y-2 text-sm text-muted">
+                <li><a href="features.html" class="hover:text-paper">Features</a></li>
+                <li><a href="how-it-works.html" class="hover:text-paper">How It Works</a></li>
+                <li><a href="pricing.html" class="hover:text-paper">Pricing</a></li>
+            </ul>
+        </div>
+
+        <div>
+            <p class="font-mono text-xs uppercase tracking-wide text-muted">Company</p>
+            <ul class="mt-3 space-y-2 text-sm text-muted">
+                <li><a href="about.html" class="hover:text-paper">About Us</a></li>
+                <li><a href="contact.html" class="hover:text-paper">Contact</a></li>
+                <li><a href="register" class="hover:text-paper">Create account</a></li>
+                <li><a href="login" class="hover:text-paper">Log in</a></li>
+            </ul>
+        </div>
+
+        <div>
+            <p class="font-mono text-xs uppercase tracking-wide text-muted">Trust</p>
+            <ul class="mt-3 space-y-2 text-sm text-muted">
+                <li>Consent-logged jobs</li>
+                <li>No auto-renewal billing</li>
+                <li><a href="terms.html" class="hover:text-paper">Terms of Service</a></li>
+                <li><a href="privacy.html" class="hover:text-paper">Privacy Policy</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mx-auto mt-12 max-w-6xl border-t border-border pt-6 text-sm text-muted">
+        © 2026 StreamLive AI. Built to make AI simpler, faster, and more accessible.
+    </div>
+</footer>
+    </div>
+        <script>
+        // Lightweight reveal-on-scroll for elements marked .reveal — degrades
+        // gracefully (everything's just visible) if IntersectionObserver isn't available.
+        if ('IntersectionObserver' in window) {
+            document.addEventListener('DOMContentLoaded', function () {
+                var io = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (entry) {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('in');
+                            io.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.15 });
+                document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+            });
+        } else {
+            document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
+        }
+    </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"97ad44cc531f410e9330a892a6c3f2cf","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body>
+
+<!-- Mirrored from sleekai.com.ng/how-it-works by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:04 GMT -->
+</html>

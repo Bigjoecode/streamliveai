@@ -1,0 +1,29 @@
+# SleekAI — clean URLs and access rules.
+#
+# Pages are served without their extension: /login runs login.php. Links anywhere
+# on the site should use the extension-less form. Paths are relative throughout,
+# so this works both at http://localhost/sleekai.com.ng/ and at a domain root.
+
+# No directory listings, and no content negotiation guessing at extensions —
+# the rewrite below does that job explicitly.
+Options -Indexes -MultiViews
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Composer dependencies and their manifests are never public.
+    RewriteRule ^vendor(/|$) - [F,L]
+    RewriteRule ^composer\.(json|lock)$ - [F,L]
+
+    # Old-style /login.php → permanent redirect to /login, so bookmarks keep working
+    # and the extension never shows in the address bar.
+    # GET/HEAD only: redirecting a POST would make the browser drop the form body.
+    RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$
+    RewriteCond %{THE_REQUEST} \s(/[^?\s]*?)\.php[?\s]
+    RewriteRule ^ %1 [R=301,L,NE]
+
+    # /login → login.php, when that file exists. Directories are left alone.
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^(.+?)/?$ $1.php [L]
+</IfModule>
