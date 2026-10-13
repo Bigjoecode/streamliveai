@@ -21,7 +21,7 @@ if (($authUser['role'] ?? 'user') === 'super_admin') {
 <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 flex w-[272px] flex-col border-r border-border bg-ink">
     <div class="flex h-[72px] shrink-0 items-center gap-2.5 px-6">
         <span class="tally-dot h-2 w-2 rounded-full bg-signal" aria-hidden="true"></span>
-        <a href="index.html" class="font-display text-[19px] font-semibold tracking-tight text-paper">StreamLive AI</a>
+        <a href="./" class="font-display text-[19px] font-semibold tracking-tight text-paper">StreamLive AI</a>
     </div>
 
     <nav class="px-4 pt-3" aria-label="Dashboard">
@@ -41,7 +41,7 @@ if (($authUser['role'] ?? 'user') === 'super_admin') {
             </svg>
             Join our Telegram
         </a>
-        <a href="contact.html" class="flex items-center justify-center gap-2.5 rounded-xl border border-border px-4 py-3 text-[14px] font-medium text-paper transition-colors hover:border-signal/35">
+        <a href="contact" class="flex items-center justify-center gap-2.5 rounded-xl border border-border px-4 py-3 text-[14px] font-medium text-paper transition-colors hover:border-signal/35">
             <svg class="h-[18px] w-[18px] text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                 <circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.4" stroke-linecap="round"/><circle cx="12" cy="16.8" r=".9" fill="currentColor" stroke="none"/>
             </svg>

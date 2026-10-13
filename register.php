@@ -45,7 +45,7 @@ $describe = fn(string $f): string => isset($errors[$f]) ? ' aria-invalid="true" 
                         <?php auth_field_error($errors, 'password'); ?>
                     </label>
                     <div><label class="flex items-start gap-2 text-xs text-muted">
-                        <input required type="checkbox" name="terms" value="1" class="mt-0.5"<?= $describe('terms') ?>><span>I agree to the <a href="terms.html" target="_blank" rel="noopener" class="text-paper underline">Terms of Service</a> and <a href="privacy.html" target="_blank" rel="noopener" class="text-paper underline">Privacy Policy</a>.</span>
+                        <input required type="checkbox" name="terms" value="1" class="mt-0.5"<?= $describe('terms') ?>><span>I agree to the <a href="terms" target="_blank" rel="noopener" class="text-paper underline">Terms of Service</a> and <a href="privacy" target="_blank" rel="noopener" class="text-paper underline">Privacy Policy</a>.</span>
                     </label><?php auth_field_error($errors, 'terms'); ?></div>
                     <button type="submit" class="btn-glow w-full rounded-md bg-signal py-3 font-medium text-ink hover:brightness-95">Create account</button>
                 </form>

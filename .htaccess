@@ -15,15 +15,27 @@ Options -Indexes -MultiViews
     RewriteRule ^vendor(/|$) - [F,L]
     RewriteRule ^composer\.(json|lock)$ - [F,L]
 
-    # Old-style /login.php → permanent redirect to /login, so bookmarks keep working
-    # and the extension never shows in the address bar.
-    # GET/HEAD only: redirecting a POST would make the browser drop the form body.
+    # /index.html (or /index) → / — the home page has exactly one address.
     RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$
-    RewriteCond %{THE_REQUEST} \s(/[^?\s]*?)\.php[?\s]
+    RewriteCond %{THE_REQUEST} \s(/[^?\s]*?)?/index(\.html|\.php)?[?\s]
+    RewriteRule ^ %1/ [R=301,L,NE]
+
+    # Old-style /login.php or /pricing.html → permanent redirect to /login or
+    # /pricing, so bookmarks keep working and no extension shows in the address bar.
+    # GET/HEAD only: redirecting a POST would make the browser drop the form body.
+    # cdn-cgi/ is Cloudflare's own email-protection page; left exactly as is.
+    RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$
+    RewriteCond %{REQUEST_URI} !/cdn-cgi/
+    RewriteCond %{THE_REQUEST} \s(/[^?\s]*?)\.(php|html)[?\s]
     RewriteRule ^ %1 [R=301,L,NE]
 
-    # /login → login.php, when that file exists. Directories are left alone.
+    # /login → login.php, /pricing → pricing.html, when that file exists.
+    # Directories are left alone.
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME}.php -f
     RewriteRule ^(.+?)/?$ $1.php [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME}.html -f
+    RewriteRule ^(.+?)/?$ $1.html [L]
 </IfModule>

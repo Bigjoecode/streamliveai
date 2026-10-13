@@ -56,7 +56,7 @@ function auth_layout_open(string $title, string $headline): void
         <div class="relative hidden overflow-hidden md:flex md:w-1/2 md:flex-col md:justify-between md:p-12 lg:p-16">
             <div class="grid-overlay absolute inset-0" aria-hidden="true"></div>
             <div class="relative">
-                <a href="index.html" class="flex items-center gap-2">
+                <a href="./" class="flex items-center gap-2">
                     <span class="tally-dot h-2.5 w-2.5 rounded-full bg-signal"></span>
                     <span class="font-display text-lg tracking-tight">StreamLive AI</span>
                 </a>
@@ -86,7 +86,7 @@ function auth_layout_open(string $title, string $headline): void
         <div class="flex w-full items-center justify-center px-5 py-16 sm:px-6 md:w-1/2">
             <div class="glass w-full max-w-sm rounded-xl p-6 sm:p-8">
                 <div class="mb-6 flex items-center gap-2 md:hidden">
-                    <a href="index.html" class="flex items-center gap-2">
+                    <a href="./" class="flex items-center gap-2">
                         <span class="tally-dot h-2.5 w-2.5 rounded-full bg-signal"></span>
                         <span class="font-display text-lg tracking-tight">StreamLive AI</span>
                     </a>
