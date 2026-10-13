@@ -19,7 +19,14 @@ function sleek_config(?string $key = null): mixed
     if ($config === null) {
         $config = require __DIR__ . '/config.php';
         if (is_file(__DIR__ . '/config.local.php')) {
-            $config = array_replace_recursive($config, require __DIR__ . '/config.local.php');
+            // An empty or half-written file returns 1, not an array — skip it
+            // (and say so in the log) rather than fatal on every page.
+            $local = require __DIR__ . '/config.local.php';
+            if (is_array($local)) {
+                $config = array_replace_recursive($config, $local);
+            } else {
+                error_log('SleekAI: inc/config.local.php must `return [...]`; ignoring it.');
+            }
         }
         // Super-admin-managed provider keys live outside inc/ and are never served
         // over HTTP; storage/.htaccess blocks direct access to these JSON values.
