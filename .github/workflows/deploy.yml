@@ -55,6 +55,14 @@ jobs:
           fi
           ssh-keyscan -p "$(trim "$SSH_PORT")" -H "$(trim "$SSH_HOST")" >> ~/.ssh/known_hosts
 
+          # cPanel accepts the key even when shell access is off, then prints a
+          # notice and exits 0 — so prove a command actually runs before uploading.
+          out="$(ssh -p "$(trim "$SSH_PORT")" -i ~/.ssh/id_deploy "$(trim "$SSH_USER")@$(trim "$SSH_HOST")" 'echo __deploy_ok__' 2>&1 || true)"
+          if ! printf '%s' "$out" | grep -q __deploy_ok__; then
+            echo "::error::SSH logged in but cannot run commands. Server said: $out"
+            exit 1
+          fi
+
       - name: Upload to server
         run: |
           # tar over ssh rather than rsync: shared-host login shells print banners,
@@ -62,6 +70,7 @@ jobs:
           # Files are only added/overwritten — the target may hold files this repo
           # doesn't own. Repo-only files below never ship, and the server's own
           # config.local.php and storage/ are left alone.
+          set -o pipefail
           tar -czf - \
             --exclude=./.git \
             --exclude=./.github \
