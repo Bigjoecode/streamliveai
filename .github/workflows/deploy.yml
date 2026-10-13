@@ -35,18 +35,27 @@ jobs:
           SSH_KEY: ${{ secrets.SSH_KEY }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_PORT: ${{ secrets.SSH_PORT }}
-        run: |
-          mkdir -p ~/.ssh && chmod 700 ~/.ssh
-          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
-          chmod 600 ~/.ssh/id_deploy
-          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
-
-      - name: Rsync to server
-        env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_PORT: ${{ secrets.SSH_PORT }}
           SSH_USER: ${{ secrets.SSH_USER }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          # Secrets pasted through a browser often carry stray spaces or CRLFs.
+          trim() { printf '%s' "$1" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'; }
+          for v in SSH_HOST SSH_PORT SSH_USER DEPLOY_PATH; do
+            val="$(trim "${!v}")"
+            echo "::add-mask::$val"
+            echo "$v=$val" >> "$GITHUB_ENV"
+          done
+
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          if ! ssh-keygen -y -P '' -f ~/.ssh/id_deploy > /dev/null 2>&1; then
+            echo "::error::SSH_KEY is not a valid private key, or it has a passphrase. Use a key generated with an empty passphrase."
+            exit 1
+          fi
+          ssh-keyscan -p "$(trim "$SSH_PORT")" -H "$(trim "$SSH_HOST")" >> ~/.ssh/known_hosts
+
+      - name: Rsync to server
         run: |
           # No --delete: the target may hold files this repo doesn't own.
           rsync -az \
@@ -67,11 +76,6 @@ jobs:
             ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
 
       - name: Ensure runtime dirs exist
-        env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_PORT: ${{ secrets.SSH_PORT }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           ssh -p "$SSH_PORT" -i ~/.ssh/id_deploy "$SSH_USER@$SSH_HOST" "
             cd '$DEPLOY_PATH' &&
