@@ -1,14 +1,18 @@
-# Deploy to Namecheap shared hosting over SSH on every push to main.
+# Deploy to Namecheap shared hosting over SFTP on every push to main.
 #
 # Required repository secrets (Settings → Secrets and variables → Actions):
 #   SSH_HOST     server hostname or IP (cPanel → "Server Information" → Shared IP)
 #   SSH_PORT     21098 on Namecheap shared hosting
 #   SSH_USER     cPanel username
-#   SSH_KEY      private key whose public half is authorised in cPanel → SSH Access
-#   DEPLOY_PATH  absolute target dir, e.g. /home/<cpaneluser>/public_html
+#   SSH_KEY      passphrase-less private key whose public half is authorised in
+#                cPanel → SSH Access
+#   DEPLOY_PATH  absolute document root, e.g. /home/<cpaneluser>/streamliveai.art
 #
-# Server-only files are never touched: inc/config.local.php (keys), storage/
-# (sessions, SQLite, logs, outputs) and ops-dashboard runtime cache/data.
+# SFTP only — no shell commands. The account answers the SFTP subsystem but
+# refuses shell sessions ("Shell access is not enabled"), same as mejortechworld.
+#
+# Only git-tracked files ship, so the server's own inc/config.local.php and
+# storage/ data are never touched. Files are added/overwritten, never deleted.
 
 name: Deploy
 
@@ -39,7 +43,7 @@ jobs:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           # Secrets pasted through a browser often carry stray spaces or CRLFs.
-          trim() { printf '%s' "$1" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'; }
+          trim() { printf '%s' "$1" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's:/*$::'; }
           for v in SSH_HOST SSH_PORT SSH_USER DEPLOY_PATH; do
             val="$(trim "${!v}")"
             echo "::add-mask::$val"
@@ -55,41 +59,27 @@ jobs:
           fi
           ssh-keyscan -p "$(trim "$SSH_PORT")" -H "$(trim "$SSH_HOST")" >> ~/.ssh/known_hosts
 
-          # cPanel accepts the key even when shell access is off, then prints a
-          # notice and exits 0 — so prove a command actually runs before uploading.
-          out="$(ssh -p "$(trim "$SSH_PORT")" -i ~/.ssh/id_deploy "$(trim "$SSH_USER")@$(trim "$SSH_HOST")" 'echo __deploy_ok__' 2>&1 || true)"
-          if ! printf '%s' "$out" | grep -q __deploy_ok__; then
-            echo "::error::SSH logged in but cannot run commands. Server said: $out"
-            exit 1
-          fi
-
-      - name: Upload to server
+      - name: Upload over SFTP
         run: |
-          # tar over ssh rather than rsync: shared-host login shells print banners,
-          # which break rsync's protocol but can't corrupt a tar stream on stdin.
-          # Files are only added/overwritten — the target may hold files this repo
-          # doesn't own. Repo-only files below never ship, and the server's own
-          # config.local.php and storage/ are left alone.
-          set -o pipefail
-          tar -czf - \
-            --exclude=./.git \
-            --exclude=./.github \
-            --exclude=./.gitignore \
-            --exclude=./.gitattributes \
-            --exclude=./dev-router.php \
-            --exclude=./LOCAL-SETUP.md \
-            --exclude=./inc/config.local.php \
-            --exclude=./storage \
-            --exclude=./ops-dashboard/cache \
-            --exclude=./ops-dashboard/data \
-            . \
-          | ssh -p "$SSH_PORT" -i ~/.ssh/id_deploy "$SSH_USER@$SSH_HOST" \
-              "mkdir -p '$DEPLOY_PATH' && tar -xzf - --no-same-owner -C '$DEPLOY_PATH'"
+          # Repo-only files that never ship.
+          skip='^(\.github/|LOCAL-SETUP\.md$|dev-router\.php$|\.gitattributes$)|(^|/)\.gitignore$'
+          git ls-files | grep -Ev "$skip" > files.txt
 
-      - name: Ensure runtime dirs exist
+          q() { printf '"%s"' "$1"; }
+          {
+            # "-" lets mkdir fail quietly when the directory already exists.
+            sed -n 's:/[^/]*$::p' files.txt | sort -u | awk -F/ '{p=""; for(i=1;i<=NF;i++){p=p (i>1?"/":"") $i; print p}}' | sort -u \
+              | while read -r d; do echo "-mkdir $(q "$DEPLOY_PATH/$d")"; done
+            while read -r f; do echo "put $(q "$f") $(q "$DEPLOY_PATH/$f")"; done < files.txt
+          } > batch.txt
+          echo "Uploading $(wc -l < files.txt) files"
+
+          sftp -q -b batch.txt -i ~/.ssh/id_deploy -P "$SSH_PORT" "$SSH_USER@$SSH_HOST"
+
+      - name: Smoke test
         run: |
-          ssh -p "$SSH_PORT" -i ~/.ssh/id_deploy "$SSH_USER@$SSH_HOST" "
-            cd '$DEPLOY_PATH' &&
-            mkdir -p storage ops-dashboard/cache ops-dashboard/data &&
-            [ -f storage/.htaccess ] || printf 'Require all denied\n' > storage/.htaccess
-          "
+          # The login page is PHP behind a clean-URL rewrite, so a 200 proves the
+          # upload landed in the live docroot and that PHP and .htaccess both work.
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 https://streamliveai.art/login)
+          echo "GET /login → $code"
+          [ "$code" = 200 ] || { echo "::warning::/login returned $code — check DEPLOY_PATH and inc/config.local.php"; }
