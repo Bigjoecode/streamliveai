@@ -55,25 +55,27 @@ jobs:
           fi
           ssh-keyscan -p "$(trim "$SSH_PORT")" -H "$(trim "$SSH_HOST")" >> ~/.ssh/known_hosts
 
-      - name: Rsync to server
+      - name: Upload to server
         run: |
-          # No --delete: the target may hold files this repo doesn't own.
-          rsync -az \
-            -e "ssh -p $SSH_PORT -i ~/.ssh/id_deploy" \
-            --exclude '.git/' \
-            --exclude '.github/' \
-            --exclude '.gitignore' \
-            --exclude '.gitattributes' \
-            --exclude 'dev-router.php' \
-            --exclude 'LOCAL-SETUP.md' \
-            --exclude 'inc/config.local.php' \
-            --exclude 'storage/' \
-            --exclude 'ops-dashboard/cache/' \
-            --exclude 'ops-dashboard/data/' \
-            --exclude '.well-known/' \
-            --exclude 'cgi-bin/' \
-            --exclude 'error_log' \
-            ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
+          # tar over ssh rather than rsync: shared-host login shells print banners,
+          # which break rsync's protocol but can't corrupt a tar stream on stdin.
+          # Files are only added/overwritten — the target may hold files this repo
+          # doesn't own. Repo-only files below never ship, and the server's own
+          # config.local.php and storage/ are left alone.
+          tar -czf - \
+            --exclude=./.git \
+            --exclude=./.github \
+            --exclude=./.gitignore \
+            --exclude=./.gitattributes \
+            --exclude=./dev-router.php \
+            --exclude=./LOCAL-SETUP.md \
+            --exclude=./inc/config.local.php \
+            --exclude=./storage \
+            --exclude=./ops-dashboard/cache \
+            --exclude=./ops-dashboard/data \
+            . \
+          | ssh -p "$SSH_PORT" -i ~/.ssh/id_deploy "$SSH_USER@$SSH_HOST" \
+              "mkdir -p '$DEPLOY_PATH' && tar -xzf - --no-same-owner -C '$DEPLOY_PATH'"
 
       - name: Ensure runtime dirs exist
         run: |
