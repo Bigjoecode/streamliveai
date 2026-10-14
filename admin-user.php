@@ -6,6 +6,7 @@
 require __DIR__ . '/inc/bootstrap.php';
 require __DIR__ . '/inc/catalog.php';
 require_once __DIR__ . '/inc/mailer.php';
+require __DIR__ . '/inc/contact.php';
 require __DIR__ . '/inc/admin-users.php';
 require __DIR__ . '/inc/admin-layout.php';
 $admin = require_super_admin();
@@ -14,7 +15,7 @@ $id   = filter_var($_GET['id'] ?? $_POST['id'] ?? null, FILTER_VALIDATE_INT) ?: 
 $user = sleek_admin_find_user($id);
 if (!$user) {
     sleek_flash('error', 'That account no longer exists.');
-    sleek_redirect('admin#accounts');
+    sleek_redirect('admin-accounts');
 }
 
 $here      = 'admin-user?id=' . $id;
@@ -54,7 +55,7 @@ if (sleek_is_post()) {
             $errors = ['confirm_email' => 'Type the account\'s email exactly to confirm.'];
         } else {
             $errors = sleek_admin_delete_user($id, $admin);
-            if (!$errors) sleek_redirect('admin?done=deleted#accounts');
+            if (!$errors) sleek_redirect('admin-accounts?done=deleted');
         }
     }
     if ($errors) {
@@ -79,7 +80,10 @@ $isSuper  = $user['role'] === 'super_admin';
 $isSelf   = (int) $user['id'] === (int) $admin['id'];
 $referrer = $user['referred_by'] ? sleek_admin_find_user((int) $user['referred_by']) : null;
 
-admin_layout_open($user['name'], $admin, $notice, $noticeBad, false);
+admin_layout_open($user['name'], $admin, $notice, $noticeBad, 'accounts');
+?>
+<p style="margin:4px 0 0"><a href="admin-accounts" style="text-decoration:none">← All accounts</a></p>
+<?php
 ?>
 <section class="card">
     <h2>Overview</h2>
@@ -163,7 +167,7 @@ admin_layout_open($user['name'], $admin, $notice, $noticeBad, false);
                 <td data-label="When"><?= e(date('Y-m-d H:i', (int) $pm['created_at'])) ?></td>
                 <td data-label="Pack"><?= e((sleek_pack($pm['pack_key'])['name'] ?? $pm['pack_key'])) ?> · <?= number_format((int) $pm['credits']) ?> cr</td>
                 <td data-label="Amount"><?= sleek_money((int) $pm['amount_kobo'], (string) $pm['currency']) ?></td>
-                <td data-label="Via"><?= e(ucfirst($pm['provider'])) ?></td>
+                <td data-label="Via"><?= e(sleek_admin_payment_method((string) $pm['provider'])) ?></td>
                 <td data-label="Status"><?= e($pm['status']) ?></td>
                 <td data-label="Reference"><code><?= e($pm['reference']) ?></code></td>
             </tr>

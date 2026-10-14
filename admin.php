@@ -7,6 +7,12 @@ require __DIR__ . '/inc/admin-users.php';
 require __DIR__ . '/inc/admin-layout.php';
 $admin = require_super_admin();
 
+// Which admin page this request renders. The admin-*.php entry files set it;
+// /admin itself is the Overview. Every page posts back to itself and shares the
+// handlers below.
+$adminView = $adminView ?? 'overview';
+if (!isset(SLEEK_ADMIN_NAV[$adminView])) $adminView = 'overview';
+
 /** storage/provider-secrets.json — private values layered over the config files. */
 function sleek_admin_secrets_read(): array
 {
@@ -98,7 +104,7 @@ if (sleek_is_post()) {
                 if ($written === false) $notice = 'Could not write the private provider settings file.';
                 else {
                     @chmod($secretFile, 0600);
-                    sleek_redirect('admin?keys=saved');
+                    sleek_redirect('admin-providers?keys=saved');
                 }
             }
         }
@@ -134,7 +140,7 @@ if (sleek_is_post()) {
             if (isset($_POST['mail_password_clear'])) $mail['password'] = '';
             elseif ($pass !== '') $mail['password'] = $pass;
             $saved['mail'] = $mail;
-            if (sleek_admin_secrets_write($saved)) sleek_redirect('admin?saved=mail#email');
+            if (sleek_admin_secrets_write($saved)) sleek_redirect('admin-email?saved=mail');
             $notice = 'Could not write the private settings file.';
         }
     } elseif ($action === 'test_mail') {
@@ -177,7 +183,7 @@ if (sleek_is_post()) {
         } else {
             require_once __DIR__ . '/inc/settings.php';
             sleek_setting_set('packs', $packs);
-            sleek_redirect('admin?saved=packs#pricing');
+            sleek_redirect('admin-pricing?saved=packs');
         }
     } elseif ($action === 'save_site') {
         require_once __DIR__ . '/inc/settings.php';
@@ -190,7 +196,7 @@ if (sleek_is_post()) {
         } else {
             sleek_setting_set('telegram_url', $telegram);
             sleek_setting_set('contact_notify_email', $notify);
-            sleek_redirect('admin?saved=site#site');
+            sleek_redirect('admin-community?saved=site');
         }
     } elseif ($action === 'message_read' || $action === 'message_unread' || $action === 'message_delete') {
         $id = filter_var($_POST['message_id'] ?? null, FILTER_VALIDATE_INT);
@@ -198,7 +204,7 @@ if (sleek_is_post()) {
             if ($action === 'message_delete') $db->prepare('DELETE FROM contact_messages WHERE id = ?')->execute([$id]);
             else $db->prepare('UPDATE contact_messages SET read_at = ? WHERE id = ?')->execute([$action === 'message_read' ? time() : null, $id]);
         }
-        sleek_redirect('admin#messages');
+        sleek_redirect('admin-messages');
     }
 }
 
@@ -225,14 +231,6 @@ $messages = $db->query('SELECT * FROM contact_messages ORDER BY created_at DESC,
 $unread = sleek_contact_unread_count();
 
 $q = is_string($_GET['q'] ?? null) ? mb_substr(trim($_GET['q']), 0, 100) : '';
-$list = sleek_admin_list_users($q, (int) ($_GET['p'] ?? 1));
-$pageUrl = fn(int $n) => 'admin?' . http_build_query(array_filter(['q' => $q, 'p' => $n > 1 ? $n : null])) . '#accounts';
-$stats = [
-    'users' => (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn(),
-    'admins' => (int) $db->query("SELECT COUNT(*) FROM users WHERE role IN ('admin','super_admin')")->fetchColumn(),
-    'jobs' => (int) $db->query('SELECT COUNT(*) FROM jobs')->fetchColumn(),
-    'payments' => (int) $db->query("SELECT COUNT(*) FROM payments WHERE status = 'success'")->fetchColumn(),
-];
 $providers = [
     'Decart' => sleek_config('decart')['api_key'] !== '',
     'ElevenLabs' => sleek_config('elevenlabs')['api_key'] !== '',
@@ -241,27 +239,186 @@ $providers = [
     'NOWPayments (crypto)' => sleek_config('nowpayments')['api_key'] !== '' && sleek_config('nowpayments')['ipn_secret'] !== '',
 ];
 
-admin_layout_open('System control', $admin, $notice, $noticeBad);
+if ($adminView === 'accounts') {
+    $list = sleek_admin_list_users($q, (int) ($_GET['p'] ?? 1));
+    $pageUrl = fn(int $n) => 'admin-accounts?' . http_build_query(array_filter(['q' => $q, 'p' => $n > 1 ? $n : null]));
+}
+
+if ($adminView === 'overview') {
+    $now = time();
+    $count = fn(string $sql, array $args = []) => (function () use ($db, $sql, $args) {
+        $st = $db->prepare($sql); $st->execute($args); return (int) $st->fetchColumn();
+    })();
+    $ov = [
+        'users'   => $count('SELECT COUNT(*) FROM users'),
+        'new7'    => $count('SELECT COUNT(*) FROM users WHERE created_at >= ?', [$now - 7 * 86400]),
+        'paid'    => $count("SELECT COUNT(*) FROM payments WHERE status = 'success'"),
+        'paid30'  => $count("SELECT COUNT(*) FROM payments WHERE status = 'success' AND paid_at >= ?", [$now - 30 * 86400]),
+        'jobs'    => $count('SELECT COUNT(*) FROM jobs'),
+        'jobs7'   => $count('SELECT COUNT(*) FROM jobs WHERE created_at >= ?', [$now - 7 * 86400]),
+        'credits' => $count('SELECT COALESCE(SUM(credits), 0) FROM users'),
+    ];
+    // Revenue per currency (older rows may be naira); shown as "$X + ₦Y".
+    $revenue = function (int $since) use ($db): string {
+        $st = $db->prepare("SELECT currency, SUM(amount_kobo) AS total FROM payments WHERE status = 'success' AND paid_at >= ? GROUP BY currency");
+        $st->execute([$since]);
+        $parts = array_map(fn($r) => sleek_money((int) $r['total'], (string) $r['currency']), $st->fetchAll());
+        return $parts ? implode(' + ', $parts) : sleek_money(0, sleek_catalog_currency());
+    };
+    $ov['revenue']   = $revenue(0);
+    $ov['revenue30'] = $revenue($now - 30 * 86400);
+
+    // Sign-ups per day for the last 14 days, bucketed in PHP so it's the same on MySQL and SQLite.
+    $days = [];
+    for ($d = 13; $d >= 0; $d--) $days[date('Y-m-d', strtotime("-{$d} days", $now))] = 0;
+    $st = $db->prepare('SELECT created_at FROM users WHERE created_at >= ?');
+    $st->execute([strtotime(array_key_first($days))]);
+    foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $t) {
+        $k = date('Y-m-d', (int) $t);
+        if (isset($days[$k])) $days[$k]++;
+    }
+    $chartMax  = max(1, ...array_values($days));
+    $chartTop  = $chartMax <= 4 ? 4 : (int) (ceil($chartMax / 5) * 5);   // a clean gridline value
+    $signups14 = array_sum($days);
+
+    $recentUsers = $db->query('SELECT id, name, email, created_at FROM users ORDER BY id DESC LIMIT 6')->fetchAll();
+    $recentPayments = $db->query('SELECT p.user_id, p.pack_key, p.amount_kobo, p.currency, p.status, p.provider, p.created_at, u.name
+                                  FROM payments p JOIN users u ON u.id = p.user_id ORDER BY p.id DESC LIMIT 6')->fetchAll();
+    $unreadMessages = $db->query('SELECT id, name, message, created_at FROM contact_messages WHERE read_at IS NULL ORDER BY id DESC LIMIT 3')->fetchAll();
+
+    $packsSaved = sleek_setting('packs', null) !== null;
+    $checklist = [
+        ['Email (SMTP) is set up', $mailReady, 'admin-email', 'Set up'],
+        ['Card payments (Flutterwave) connected', $providers['Flutterwave'], 'admin-providers', 'Connect'],
+        ['Crypto payments (NOWPayments) connected', $providers['NOWPayments (crypto)'], 'admin-providers', 'Connect'],
+        ['Telegram channel added', $telegramUrl !== '', 'admin-community', 'Add'],
+        ['Pack prices reviewed', $packsSaved, 'admin-pricing', 'Review'],
+    ];
+    $todo = count(array_filter($checklist, fn($c) => !$c[1]));
+}
+
+$ago = function (int $t): string {
+    $d = time() - $t;
+    if ($d < 60) return 'just now';
+    if ($d < 3600) return intdiv($d, 60) . 'm ago';
+    if ($d < 86400) return intdiv($d, 3600) . 'h ago';
+    if ($d < 86400 * 30) return intdiv($d, 86400) . 'd ago';
+    return date('Y-m-d', $t);
+};
+
+$titles = ['overview' => 'Overview', 'accounts' => 'Accounts', 'messages' => 'Messages', 'pricing' => 'Pricing',
+           'community' => 'Community & notifications', 'email' => 'Email (SMTP)', 'providers' => 'Provider connections'];
+admin_layout_open($titles[$adminView], $admin, $notice, $noticeBad, $adminView);
 ?>
-<section class="stats" aria-label="Totals">
-<?php foreach ($stats as $label => $value): ?>
-    <article class="card"><div class="muted"><?= e(ucfirst($label)) ?></div><div class="number"><?= number_format($value) ?></div></article>
-<?php endforeach; ?>
+<?php if (!$mailReady && $adminView !== 'email'): ?><p class="notice bad" role="alert">Email isn't set up, so welcome, password-reset and notification emails aren't being sent. <a href="admin-email">Set up email</a>.</p><?php endif; ?>
+
+<?php if ($adminView === 'overview'): ?>
+<p class="muted" style="margin-top:4px">Good to see you, <?= e(explode(' ', trim((string) $admin['name']))[0]) ?>. Here's how <?= e((string) sleek_config('brand_name')) ?> is doing.</p>
+
+<section class="stats" aria-label="Key numbers">
+    <a class="stat" href="admin-accounts"><div class="label">Users</div><div class="value"><?= number_format($ov['users']) ?></div><div class="hint">+<?= number_format($ov['new7']) ?> this week</div></a>
+    <div class="stat"><div class="label">Revenue, 30 days</div><div class="value"><?= $ov['revenue30'] ?></div><div class="hint"><?= number_format($ov['paid30']) ?> paid order<?= $ov['paid30'] === 1 ? '' : 's' ?></div></div>
+    <div class="stat"><div class="label">Revenue, all time</div><div class="value"><?= $ov['revenue'] ?></div><div class="hint"><?= number_format($ov['paid']) ?> paid order<?= $ov['paid'] === 1 ? '' : 's' ?></div></div>
+    <div class="stat"><div class="label">Jobs run</div><div class="value"><?= number_format($ov['jobs']) ?></div><div class="hint">+<?= number_format($ov['jobs7']) ?> this week</div></div>
+    <div class="stat"><div class="label">Credits held</div><div class="value"><?= number_format($ov['credits']) ?></div><div class="hint">unspent, across users</div></div>
+    <a class="stat" href="admin-messages"><div class="label">Unread messages</div><div class="value"><?= number_format($unread) ?></div><div class="hint">from the Contact page</div></a>
 </section>
-<?php if (!$mailReady): ?><p class="notice bad" role="alert">Email is not set up, so password-reset, welcome and notification emails are not being sent. Fill in <a href="#email">Email (SMTP)</a>.</p><?php endif; ?>
 
-<section class="card" id="accounts">
-    <h2>Accounts</h2>
-    <p class="muted"><?= number_format($list['total']) ?> account<?= $list['total'] === 1 ? '' : 's' ?><?= $q !== '' ? ' matching “' . e($q) . '”' : '' ?>. Open one to edit it, change credits, send a password link or delete it.</p>
+<div class="grid2">
+    <section class="card">
+        <div class="card-head"><h2>Sign-ups, last 14 days</h2><span class="muted"><?= number_format($signups14) ?> total</span></div>
+        <div class="chart" id="signups">
+            <div class="bars" role="img" aria-label="Daily sign-ups for the last 14 days; table follows">
+                <div class="gl" style="top:0"><span><?= $chartTop ?></span></div>
+                <div class="gl" style="top:50%"><span><?= $chartTop / 2 == (int) ($chartTop / 2) ? (int) ($chartTop / 2) : '' ?></span></div>
+                <?php foreach ($days as $day => $n): $label = date('D j M', strtotime($day)); ?>
+                    <div class="day<?= $n === 0 ? ' zero' : '' ?>" tabindex="0" data-tip="<?= e($label) ?>" data-n="<?= $n ?>"><i style="height:<?= round($n / $chartTop * 100, 1) ?>%"></i></div>
+                <?php endforeach; ?>
+            </div>
+            <div class="axis" aria-hidden="true"><?php foreach (array_keys($days) as $day): ?><span><?= date('j', strtotime($day)) ?></span><?php endforeach; ?></div>
+            <table class="sr"><caption>Sign-ups per day</caption><tbody><?php foreach ($days as $day => $n): ?><tr><th scope="row"><?= e(date('D j M', strtotime($day))) ?></th><td><?= $n ?></td></tr><?php endforeach; ?></tbody></table>
+        </div>
+    </section>
 
-    <form method="get" action="admin#accounts" class="inline" role="search">
+    <section class="card">
+        <div class="card-head"><h2>Setup</h2><span class="muted"><?= $todo === 0 ? 'All done' : $todo . ' to do' ?></span></div>
+        <ul class="todo">
+            <?php foreach ($checklist as [$label, $done, $href, $cta]): ?>
+                <li class="<?= $done ? 'done' : 'open' ?>"><a href="<?= e($href) ?>"><span class="mark" aria-hidden="true"><?= $done ? '✓' : '' ?></span><span class="t"><?= e($label) ?></span><span class="sr"><?= $done ? '(done)' : '(not done)' ?></span><?php if (!$done): ?><span class="go"><?= e($cta) ?> →</span><?php endif; ?></a></li>
+            <?php endforeach; ?>
+        </ul>
+    </section>
+
+    <section class="card">
+        <div class="card-head"><h2>Newest accounts</h2><a href="admin-accounts">All accounts →</a></div>
+        <?php if (!$recentUsers): ?><p class="muted">No accounts yet.</p><?php else: ?>
+        <ul class="list">
+            <?php foreach ($recentUsers as $u): ?>
+                <li><div class="main"><a href="admin-user?id=<?= (int) $u['id'] ?>"><?= e($u['name']) ?></a><small><?= e($u['email']) ?></small></div><small class="end"><?= e($ago((int) $u['created_at'])) ?></small></li>
+            <?php endforeach; ?>
+        </ul>
+        <?php endif; ?>
+    </section>
+
+    <section class="card">
+        <div class="card-head"><h2>Latest payments</h2></div>
+        <?php if (!$recentPayments): ?><p class="muted">No payments yet. They'll appear here as soon as someone buys a pack.</p><?php else: ?>
+        <ul class="list">
+            <?php foreach ($recentPayments as $pm): ?>
+                <li><div class="main"><a href="admin-user?id=<?= (int) $pm['user_id'] ?>"><?= e($pm['name']) ?></a><small><?= e(sleek_pack($pm['pack_key'])['name'] ?? $pm['pack_key']) ?> · <?= e(sleek_admin_payment_method((string) $pm['provider'])) ?> · <?= e($ago((int) $pm['created_at'])) ?></small></div>
+                    <div class="end"><div><?= sleek_money((int) $pm['amount_kobo'], (string) $pm['currency']) ?></div><span class="status <?= e($pm['status']) ?>"><?= e($pm['status'] === 'success' ? 'Paid' : ucfirst((string) $pm['status'])) ?></span></div></li>
+            <?php endforeach; ?>
+        </ul>
+        <?php endif; ?>
+    </section>
+</div>
+
+<?php if ($unreadMessages): ?>
+<section class="card">
+    <div class="card-head"><h2>Unread messages</h2><a href="admin-messages">Open inbox →</a></div>
+    <ul class="list">
+        <?php foreach ($unreadMessages as $m): ?>
+            <li><div class="main"><a href="admin-messages"><?= e($m['name']) ?></a><small><?= e(mb_strimwidth(preg_replace('/\s+/', ' ', (string) $m['message']), 0, 90, '…')) ?></small></div><small class="end"><?= e($ago((int) $m['created_at'])) ?></small></li>
+        <?php endforeach; ?>
+    </ul>
+</section>
+<?php endif; ?>
+
+<script>
+(function () {
+    // Hover/focus tooltip for the sign-ups bars. The whole day column is the hit area.
+    var chart = document.getElementById('signups'); if (!chart) return;
+    var tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true; chart.appendChild(tip);
+    function show(el) {
+        var n = +el.dataset.n, r = el.getBoundingClientRect(), c = chart.getBoundingClientRect(), bar = el.firstElementChild.getBoundingClientRect();
+        tip.innerHTML = '<b>' + n + '</b> sign-up' + (n === 1 ? '' : 's') + ' · ' + el.dataset.tip;
+        tip.hidden = false;
+        var x = r.left - c.left + r.width / 2, half = tip.offsetWidth / 2;
+        tip.style.left = Math.max(half, Math.min(c.width - half, x)) + 'px';
+        tip.style.top = (Math.min(bar.top, r.bottom - 2) - c.top) + 'px';
+    }
+    chart.querySelectorAll('.day').forEach(function (d) {
+        d.addEventListener('mouseenter', function () { show(d); });
+        d.addEventListener('focus', function () { show(d); });
+        d.addEventListener('mouseleave', function () { tip.hidden = true; });
+        d.addEventListener('blur', function () { tip.hidden = true; });
+    });
+})();
+</script>
+<?php endif; ?>
+
+<?php if ($adminView === 'accounts'): ?>
+<section class="card">
+    <p class="muted" style="margin-top:0"><?= number_format($list['total']) ?> account<?= $list['total'] === 1 ? '' : 's' ?><?= $q !== '' ? ' matching “' . e($q) . '”' : '' ?>. Open one to edit it, change credits, send a password link or delete it.</p>
+
+    <form method="get" action="admin-accounts" class="inline" role="search">
         <input type="search" name="q" value="<?= e($q) ?>" placeholder="Search name or email" aria-label="Search accounts">
-        <button class="ghost">Search</button><?php if ($q !== ''): ?><a class="btn ghost" href="admin#accounts">Clear</a><?php endif; ?>
+        <button class="ghost">Search</button><?php if ($q !== ''): ?><a class="btn ghost" href="admin-accounts">Clear</a><?php endif; ?>
     </form>
 
     <details<?= $createErrors ? ' open' : '' ?> style="margin-top:12px">
         <summary class="btn">+ Add account</summary>
-        <form method="post" class="form" autocomplete="off">
+        <form method="post" action="admin-accounts" class="form" autocomplete="off">
             <?= csrf_field() ?><input type="hidden" name="action" value="create_user">
             <?php if (isset($createErrors['form'])): ?><span class="err"><?= e($createErrors['form']) ?></span><?php endif; ?>
             <div class="form-grid two">
@@ -305,10 +462,11 @@ admin_layout_open('System control', $admin, $notice, $noticeBad);
     <?php endif; ?>
     <?php endif; ?>
 </section>
+<?php endif; ?>
 
-<section class="card" id="messages">
-    <h2>Messages<?php if ($unread): ?><span class="pill"><?= $unread ?> new</span><?php endif; ?></h2>
-    <p class="muted">From the Contact page. Reply by clicking the sender's email. Latest 100 shown.</p>
+<?php if ($adminView === 'messages'): ?>
+<section class="card">
+    <p class="muted" style="margin-top:0"><?= $unread ? $unread . ' unread. ' : '' ?>From the Contact page. Reply by clicking the sender's email. Latest 100 shown.</p>
     <?php if (!$messages): ?><p class="muted">No messages yet.</p><?php endif; ?>
     <?php foreach ($messages as $m): $isUnread = $m['read_at'] === null; ?>
     <article class="msg<?= $isUnread ? ' unread' : '' ?>">
@@ -316,17 +474,18 @@ admin_layout_open('System control', $admin, $notice, $noticeBad);
         <small>· <?= e(date('Y-m-d H:i', (int) $m['created_at'])) ?><?php if ($m['user_id']): ?> · <a href="admin-user?id=<?= (int) $m['user_id'] ?>">account #<?= (int) $m['user_id'] ?></a><?php endif; ?></small>
         <p><?= e($m['message']) ?></p>
         <div class="actions">
-            <form method="post" class="inline"><?= csrf_field() ?><input type="hidden" name="message_id" value="<?= (int) $m['id'] ?>"><button class="ghost" name="action" value="<?= $isUnread ? 'message_read' : 'message_unread' ?>"><?= $isUnread ? 'Mark read' : 'Mark unread' ?></button></form>
-            <form method="post" class="inline" onsubmit="return confirm('Delete this message?')"><?= csrf_field() ?><input type="hidden" name="message_id" value="<?= (int) $m['id'] ?>"><button class="danger" name="action" value="message_delete">Delete</button></form>
+            <form method="post" action="admin-messages" class="inline"><?= csrf_field() ?><input type="hidden" name="message_id" value="<?= (int) $m['id'] ?>"><button class="ghost" name="action" value="<?= $isUnread ? 'message_read' : 'message_unread' ?>"><?= $isUnread ? 'Mark read' : 'Mark unread' ?></button></form>
+            <form method="post" action="admin-messages" class="inline" onsubmit="return confirm('Delete this message?')"><?= csrf_field() ?><input type="hidden" name="message_id" value="<?= (int) $m['id'] ?>"><button class="danger" name="action" value="message_delete">Delete</button></form>
         </div>
     </article>
     <?php endforeach; ?>
 </section>
+<?php endif; ?>
 
-<section class="card" id="pricing">
-    <h2>Pricing</h2>
-    <p class="muted">Credit packs, priced in US dollars. Changes show at once on the pricing page, the home page (first three packs) and Credits &amp; billing. A payment already started keeps its price. A pack with a badge (e.g. “Most popular”) is highlighted.</p>
-    <form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="save_packs">
+<?php if ($adminView === 'pricing'): ?>
+<section class="card">
+    <p class="muted" style="margin-top:0">Credit packs, priced in US dollars. Changes show at once on the pricing page, the home page (first three packs) and Credits &amp; billing. A payment already started keeps its price. A pack with a badge (e.g. “Most popular”) is highlighted.</p>
+    <form method="post" action="admin-pricing"><?= csrf_field() ?><input type="hidden" name="action" value="save_packs">
         <div class="packs">
         <?php foreach ($packs as $key => $p): ?>
             <fieldset class="pack"><legend><?= e($key) ?></legend>
@@ -343,20 +502,22 @@ admin_layout_open('System control', $admin, $notice, $noticeBad);
         <button>Save prices</button>
     </form>
 </section>
+<?php endif; ?>
 
-<section class="card" id="site">
-    <h2>Community &amp; notifications</h2>
-    <form method="post" class="form"><?= csrf_field() ?><input type="hidden" name="action" value="save_site">
+<?php if ($adminView === 'community'): ?>
+<section class="card">
+    <form method="post" action="admin-community" class="form" style="margin-top:0"><?= csrf_field() ?><input type="hidden" name="action" value="save_site">
         <label><span class="l">Telegram channel</span><input name="telegram_url" placeholder="https://t.me/yourchannel or @yourchannel" value="<?= e($telegramUrl) ?>"><small>Shown in the footer of every public page, on the Contact page, in the dashboard sidebar and in welcome emails. Until set, the dashboard button opens the Contact page.</small></label>
-        <label><span class="l">Email new contact messages to (optional)</span><input type="email" name="contact_notify_email" placeholder="you@example.com" value="<?= e($notifyEmail) ?>"><small>Messages are always kept in Messages above; this also emails each one.</small></label>
+        <label><span class="l">Email new contact messages to (optional)</span><input type="email" name="contact_notify_email" placeholder="you@example.com" value="<?= e($notifyEmail) ?>"><small>Messages are always kept under Messages; this also emails each one.</small></label>
         <div class="actions"><button>Save</button></div>
     </form>
 </section>
+<?php endif; ?>
 
-<section class="card" id="email">
-    <h2>Email (SMTP)</h2>
-    <p class="muted">Used for welcome emails, password-reset links and contact notifications. On Namecheap: create a mailbox in cPanel → Email Accounts, then use server <strong>mail.yourdomain</strong>, port <strong>465</strong>, SSL, and the full mailbox address and password. Status: <strong><?= $mailReady ? 'configured' : 'not set up' ?></strong>. Sends from <?= e(sleek_mail_from_address()) ?>.</p>
-    <form method="post" class="form" autocomplete="off"><?= csrf_field() ?><input type="hidden" name="action" value="save_mail">
+<?php if ($adminView === 'email'): ?>
+<section class="card">
+    <p class="muted" style="margin-top:0">Used for welcome emails, password-reset links and contact notifications. On Namecheap: create a mailbox in cPanel → Email Accounts, then use server <strong>mail.yourdomain</strong>, port <strong>465</strong>, SSL, and the full mailbox address and password. Status: <strong><?= $mailReady ? 'configured' : 'not set up' ?></strong>. Sends from <?= e(sleek_mail_from_address()) ?>.</p>
+    <form method="post" action="admin-email" class="form" autocomplete="off"><?= csrf_field() ?><input type="hidden" name="action" value="save_mail">
         <div class="form-grid three">
             <label><span class="l">SMTP server</span><input required name="mail_host" placeholder="mail.streamliveai.art" value="<?= e($mailReady ? (string) $mailCfg['host'] : '') ?>"></label>
             <label><span class="l">Port</span><input required type="number" min="1" max="65535" name="mail_port" value="<?= (int) ($mailReady ? $mailCfg['port'] : 465) ?>"></label>
@@ -370,19 +531,23 @@ admin_layout_open('System control', $admin, $notice, $noticeBad);
         </div>
         <div class="actions"><button>Save email settings</button></div>
     </form>
-    <form method="post" class="inline" style="margin-top:12px"><?= csrf_field() ?><input type="hidden" name="action" value="test_mail"><input type="email" required name="test_to" placeholder="Send a test to…" value="<?= e($admin['email']) ?>" aria-label="Test email address"><button class="ghost">Send test email</button></form>
+</section>
+<section class="card">
+    <h3>Send a test</h3>
+    <form method="post" action="admin-email" class="inline" style="margin-top:10px"><?= csrf_field() ?><input type="hidden" name="action" value="test_mail"><input type="email" required name="test_to" placeholder="Send a test to…" value="<?= e($admin['email']) ?>" aria-label="Test email address"><button class="ghost">Send test email</button></form>
     <?php if (($lastMailError = sleek_mail_last_error()) !== ''): ?><p style="overflow-wrap:anywhere"><small>Last send failure: <?= e($lastMailError) ?></small></p><?php endif; ?>
 </section>
+<?php endif; ?>
 
-<section class="card" id="keys">
-    <h2>Provider connections</h2>
-    <p class="muted">Keys are stored privately on this server and never shown again. Leave a field blank to keep its current value; tick Clear to remove it.</p>
-    <div class="stats" style="margin-top:12px">
+<?php if ($adminView === 'providers'): ?>
+<section class="stats" aria-label="Connection status">
     <?php foreach ($providers as $name => $connected): ?>
-        <article class="card"><strong><?= e($name) ?></strong><p class="muted" style="margin:4px 0 0"><?= $connected ? 'Configured' : 'Keys missing' ?></p></article>
+        <div class="stat"><div class="label"><?= e($name) ?></div><div class="value" style="font-size:16px;color:<?= $connected ? '#8fe0aa' : 'var(--muted)' ?>"><?= $connected ? '✓ Configured' : 'Keys missing' ?></div></div>
     <?php endforeach; ?>
-    </div>
-    <form method="post" autocomplete="off"><?= csrf_field() ?><input type="hidden" name="action" value="save_provider_keys">
+</section>
+<section class="card">
+    <p class="muted" style="margin-top:0">Keys are stored privately on this server and never shown again. Leave a field blank to keep its current value; tick Clear to remove it.</p>
+    <form method="post" action="admin-providers" autocomplete="off"><?= csrf_field() ?><input type="hidden" name="action" value="save_provider_keys">
         <div class="keys">
         <?php foreach (sleek_admin_key_fields() as $field => [$section, $keyName, $label]): $isSet = (sleek_config($section)[$keyName] ?? '') !== ''; ?>
             <label class="card"><strong><?= e($label) ?></strong><input type="password" name="<?= e($field) ?>" autocomplete="new-password" placeholder="<?= $isSet ? 'Leave blank to keep current value' : 'Not set — paste it here' ?>"><span class="check"><input type="checkbox" name="clear_<?= e($field) ?>" value="1"> Clear saved value</span></label>
@@ -391,4 +556,5 @@ admin_layout_open('System control', $admin, $notice, $noticeBad);
         <div class="actions" style="margin-top:12px"><button>Save provider keys</button></div>
     </form>
 </section>
+<?php endif; ?>
 <?php admin_layout_close(); ?>

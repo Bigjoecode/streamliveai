@@ -53,8 +53,8 @@ function sleek_contact_notify(string $name, string $email, string $message): voi
     $subject = "New contact message from {$name}";
     $html    = '<p><strong>' . e($name) . '</strong> &lt;' . e($email) . '&gt; wrote:</p>'
              . '<p style="white-space:pre-wrap">' . e($message) . '</p>'
-             . '<p><a href="' . e(sleek_url('admin#messages')) . '">Open the inbox</a></p>';
-    $text    = "{$name} <{$email}> wrote:\n\n{$message}\n\nInbox: " . sleek_url('admin#messages');
+             . '<p><a href="' . e(sleek_url('admin-messages')) . '">Open the inbox</a></p>';
+    $text    = "{$name} <{$email}> wrote:\n\n{$message}\n\nInbox: " . sleek_url('admin-messages');
     sleek_send_mail($to, "{$brand} admin", $subject, $html, $text);
 }
 
