@@ -90,6 +90,53 @@ function sleek_claim_initial_super_admin(string $email, string $token): bool
     }
 }
 
+function sleek_super_admin_exists(): bool
+{
+    return (int) sleek_db()->query("SELECT COUNT(*) FROM users WHERE role = 'super_admin'")->fetchColumn() > 0;
+}
+
+/**
+ * First-run setup (/admin-setup): the signed-in user becomes super admin by
+ * entering auth.super_admin_setup_token — a code placed privately on the server
+ * (config.local.php or storage/provider-secrets.json). Only works while no super
+ * admin exists, so it locks itself once used. If auth.initial_super_admin_email
+ * is set, only that account may claim.
+ *
+ * @return string 'ok' | 'taken' | 'disabled' | 'locked' | 'wrong'
+ */
+function sleek_claim_first_super_admin(array $user, string $code): string
+{
+    $auth     = sleek_config('auth');
+    $expected = trim((string) ($auth['super_admin_setup_token'] ?? ''));
+    if (strlen($expected) < 24) return 'disabled';   // unset or too weak to expose
+    if (sleek_super_admin_exists()) return 'taken';
+
+    // Wrong codes count like failed logins, per IP: 5 tries per 15 minutes.
+    $key = hash('sha256', 'super-admin-setup|' . ($_SERVER['REMOTE_ADDR'] ?? 'cli'));
+    if (sleek_lockout_remaining($key) > 0) return 'locked';
+
+    $onlyEmail = sleek_normalize_email((string) ($auth['initial_super_admin_email'] ?? ''));
+    if (!hash_equals($expected, trim($code))
+        || ($onlyEmail !== '' && !hash_equals($onlyEmail, sleek_normalize_email((string) $user['email'])))) {
+        sleek_record_failure($key);
+        return 'wrong';
+    }
+
+    $db = sleek_db();
+    $db->beginTransaction();
+    try {
+        // Re-check inside the transaction so two simultaneous claims can't both win.
+        $taken = (int) $db->query("SELECT COUNT(*) FROM users WHERE role = 'super_admin'")->fetchColumn() > 0;
+        if ($taken) { $db->rollBack(); return 'taken'; }
+        $db->prepare("UPDATE users SET role = 'super_admin' WHERE id = ?")->execute([(int) $user['id']]);
+        $db->commit();
+        return 'ok';
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) $db->rollBack();
+        throw $e;
+    }
+}
+
 function sleek_update_user_role(int $userId, string $role): bool
 {
     if (!in_array($role, ['user', 'admin'], true)) return false;
