@@ -93,16 +93,117 @@ function sleek_nowpayments_ksort(array &$a): void
     foreach ($a as &$v) if (is_array($v)) sleek_nowpayments_ksort($v);
 }
 
-/** IPN authenticity: HMAC-SHA512 over the key-sorted body, keyed with the IPN secret. */
+/**
+ * IPN authenticity: HMAC-SHA512, keyed with the IPN secret, over the body with its
+ * object keys sorted — NOWPayments computes it in JavaScript as
+ * JSON.stringify(sortKeys(body)). PHP's json_encode doesn't produce the same bytes:
+ * it escapes non-ASCII ("—" → "—", and our order descriptions contain "—")
+ * and writes small numbers differently (0.00002 → 2.0e-5). So the body is re-sorted
+ * with every number kept exactly as received and strings written the way JS does.
+ * The PHP-style form from NOWPayments' own PHP sample is accepted too; both need the
+ * secret, so allowing either costs nothing.
+ */
 function sleek_nowpayments_signature_valid(string $rawBody, string $signature): bool
 {
     $secret = trim(sleek_config('nowpayments')['ipn_secret']);
+    $signature = strtolower(trim($signature));
     if ($secret === '' || $signature === '') return false;
 
-    $data = json_decode($rawBody, true);
-    if (!is_array($data)) return false;
-    sleek_nowpayments_ksort($data);
+    $candidates = [];
+    $js = sleek_nowpayments_canonical($rawBody);
+    if ($js !== null) $candidates[] = $js;
 
-    $sorted = json_encode($data, JSON_UNESCAPED_SLASHES);
-    return is_string($sorted) && hash_equals(hash_hmac('sha512', $sorted, $secret), strtolower($signature));
+    $data = json_decode($rawBody, true);
+    if (is_array($data)) {
+        sleek_nowpayments_ksort($data);
+        $php = json_encode($data, JSON_UNESCAPED_SLASHES);
+        if (is_string($php)) $candidates[] = $php;
+    }
+
+    foreach (array_unique($candidates) as $c) {
+        if (hash_equals(hash_hmac('sha512', $c, $secret), $signature)) return true;
+    }
+    return false;
+}
+
+/** JSON.stringify(sortKeys(JSON.parse($raw))), done in PHP. Null if $raw isn't a JSON object. */
+function sleek_nowpayments_canonical(string $raw): ?string
+{
+    $i = 0;
+    try {
+        $out = sleek_np_json_value($raw, $i);
+        while ($i < strlen($raw) && strpos(" \t\r\n", $raw[$i]) !== false) $i++;
+        return ($i === strlen($raw) && str_starts_with($out, '{')) ? $out : null;
+    } catch (UnexpectedValueException) {
+        return null;
+    }
+}
+
+/** Parse one JSON value at $i and return it re-encoded JS-style, with object keys sorted. */
+function sleek_np_json_value(string $s, int &$i, int $depth = 0): string
+{
+    $n = strlen($s);
+    while ($i < $n && strpos(" \t\r\n", $s[$i]) !== false) $i++;
+    if ($i >= $n || $depth > 32) throw new UnexpectedValueException('bad json');
+    $c = $s[$i];
+
+    if ($c === '{' || $c === '[') {
+        $isObj = $c === '{';
+        $i++;
+        $items = [];
+        while (true) {
+            while ($i < $n && strpos(" \t\r\n", $s[$i]) !== false) $i++;
+            if ($i < $n && $s[$i] === ($isObj ? '}' : ']') && !$items) { $i++; break; }
+            if ($isObj) {
+                if (($s[$i] ?? '') !== '"') throw new UnexpectedValueException('bad key');
+                $key = json_decode(sleek_np_json_string_token($s, $i));
+                while ($i < $n && strpos(" \t\r\n", $s[$i]) !== false) $i++;
+                if (($s[$i] ?? '') !== ':') throw new UnexpectedValueException('bad colon');
+                $i++;
+                $items[(string) $key] = sleek_np_json_value($s, $i, $depth + 1);   // a repeated key: last wins, like JS
+            } else {
+                $items[] = sleek_np_json_value($s, $i, $depth + 1);
+            }
+            while ($i < $n && strpos(" \t\r\n", $s[$i]) !== false) $i++;
+            $sep = $s[$i] ?? '';
+            $i++;
+            if ($sep === ',') continue;
+            if ($sep === ($isObj ? '}' : ']')) break;
+            throw new UnexpectedValueException('bad separator');
+        }
+        if (!$isObj) return '[' . implode(',', $items) . ']';
+        uksort($items, fn($a, $b) => strcmp((string) $a, (string) $b));   // JS Array.sort(): string order
+        $parts = [];
+        foreach ($items as $k => $v) $parts[] = sleek_np_js_string((string) $k) . ':' . $v;
+        return '{' . implode(',', $parts) . '}';
+    }
+    if ($c === '"') return sleek_np_js_string((string) json_decode(sleek_np_json_string_token($s, $i)));
+    foreach (['true', 'false', 'null'] as $lit) {
+        if (substr_compare($s, $lit, $i, strlen($lit)) === 0) { $i += strlen($lit); return $lit; }
+    }
+    // Numbers stay exactly as sent: the sender's JSON.stringify already chose their form.
+    if (preg_match('/-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/A', $s, $m, 0, $i)) {
+        $i += strlen($m[0]);
+        return $m[0];
+    }
+    throw new UnexpectedValueException('bad value');
+}
+
+/** The raw "..." token starting at $i (escapes intact); advances $i past it. */
+function sleek_np_json_string_token(string $s, int &$i): string
+{
+    $start = $i++;
+    $n = strlen($s);
+    while ($i < $n) {
+        if ($s[$i] === '\\') { $i += 2; continue; }
+        if ($s[$i] === '"') { $i++; return substr($s, $start, $i - $start); }
+        $i++;
+    }
+    throw new UnexpectedValueException('unterminated string');
+}
+
+/** A string as JSON.stringify writes it: only quote, backslash and control characters escaped. */
+function sleek_np_js_string(string $v): string
+{
+    return (string) json_encode($v, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS);
 }
