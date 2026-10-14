@@ -1,13 +1,13 @@
+<?php require __DIR__ . '/inc/public.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 
-<!-- Mirrored from sleekai.com.ng/about by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:04 GMT -->
+<!-- Mirrored from sleekai.com.ng/features by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:04 GMT -->
 <!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="uKDa2mNsXgNrAjWHvf8CXCvak3qQM6vhPXSCiODL">
-    <title>About Us — StreamLive AI</title>
+    <title>Features — StreamLive AI</title>
 
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -162,7 +162,7 @@
                     Home
                 </a>
                             <a href="features"
-                   class="transition hover:text-paper ">
+                   class="transition hover:text-paper text-paper">
                     Features
                 </a>
                             <a href="how-it-works"
@@ -174,7 +174,7 @@
                     Pricing
                 </a>
                             <a href="about"
-                   class="transition hover:text-paper text-paper">
+                   class="transition hover:text-paper ">
                     About Us
                 </a>
                     </nav>
@@ -192,7 +192,7 @@
                     <a href="./" class="whitespace-nowrap ">
                 Home
             </a>
-                    <a href="features" class="whitespace-nowrap ">
+                    <a href="features" class="whitespace-nowrap text-signal">
                 Features
             </a>
                     <a href="how-it-works" class="whitespace-nowrap ">
@@ -201,7 +201,7 @@
                     <a href="pricing" class="whitespace-nowrap ">
                 Pricing
             </a>
-                    <a href="about" class="whitespace-nowrap text-signal">
+                    <a href="about" class="whitespace-nowrap ">
                 About Us
             </a>
             </nav>
@@ -209,126 +209,119 @@
     <main>
         
 <section class="relative overflow-hidden px-6 pb-4 pt-20 md:px-12 md:pt-28">
-    <div class="pointer-events-none absolute -bottom-44 -left-32 h-[540px] w-[540px] rounded-full bg-signal/[0.12] blur-[70px]" aria-hidden="true"></div>
+    <div class="pointer-events-none absolute -right-40 -top-36 h-[520px] w-[520px] rounded-full bg-signal/[0.16] blur-[60px]" aria-hidden="true"></div>
 
     <div class="relative mx-auto max-w-2xl">
-        <p class="font-display text-xl italic text-signal">Meet StreamLive AI.</p>
-        <h1 class="mt-4 font-display text-4xl font-semibold leading-[1.15] tracking-tight text-paper md:text-5xl">
-            Powerful AI tools, made simple.
+        <h1 class="font-display text-5xl font-semibold leading-[1.05] tracking-tight text-paper md:text-6xl">
+            Everything you can do with StreamLive AI
         </h1>
-    </div>
-</section>
-
-<section class="relative px-6 py-12 md:px-12">
-    <div class="mx-auto max-w-2xl space-y-5 text-lg leading-relaxed text-muted">
-        <p>
-            StreamLive AI gives creators access to powerful tools for generating and transforming synthetic media —
-            from AI-powered video and voice to real-time experiences.
-        </p>
-        <p>
-            We make advanced AI tools easier to access, easier to use, and easier to understand.
+        <p class="mt-5 max-w-lg text-lg text-muted">
+            Powerful AI tools for creation, transformation, and real-time experiences — all in one platform.
         </p>
     </div>
 </section>
 
-<section class="relative border-t border-border px-6 py-20 md:px-12">
-    <div class="mx-auto max-w-5xl">
-        <p class="font-mono text-xs uppercase tracking-wide text-signal">Principles</p>
-        <h2 class="mt-2 font-display text-2xl">What we believe</h2>
-        <div class="mt-8 grid divide-y divide-border overflow-hidden rounded-2xl border border-border md:grid-cols-2 md:divide-x md:divide-y-0">
-                            <div class="p-7">
-                    <h3 class="font-display text-lg">Consent comes first</h3>
-                    <p class="mt-2.5 text-sm text-muted">If you&#039;re using someone&#039;s face or voice, you should have the right or permission to use it. We expect users to respect that responsibility when creating synthetic media with StreamLive AI.</p>
+
+<section class="relative px-6 py-16 md:px-12">
+    <div class="mx-auto max-w-5xl space-y-4">
+        
+        <div class="grid gap-8 rounded-2xl border border-signal/25 bg-signal/[0.04] p-8 md:grid-cols-[1fr_1.3fr] md:items-center">
+            <div>
+                <p class="font-mono text-xs text-signal">Livestream</p>
+                <h2 class="mt-2 font-display text-3xl">Livestream</h2>
+                <p class="mt-3 text-muted">Transform your live camera feed in real time and bring AI-powered effects to your live experience.</p>
+            </div>
+            <ul class="space-y-3 text-sm text-paper">
+                                    <li class="flex items-center gap-3"><span class="h-1.5 w-1.5 rounded-full bg-reel"></span>Real-time processing</li>
+                                    <li class="flex items-center gap-3"><span class="h-1.5 w-1.5 rounded-full bg-reel"></span>Phone and laptop compatible</li>
+                                    <li class="flex items-center gap-3"><span class="h-1.5 w-1.5 rounded-full bg-reel"></span>Metered per second</li>
+                            </ul>
+        </div>
+
+                    <div class="glass grid gap-6 rounded-2xl p-7 md:grid-cols-[1fr_1.3fr] md:items-center">
+                <div>
+                    <p class="font-mono text-xs text-muted">Audio</p>
+                    <h2 class="mt-2 font-display text-2xl">Voice Isolator</h2>
+                    <p class="mt-2.5 text-sm text-muted">Strip background noise from any recording — an interview, a voice memo, a noisy call — keeping just the speech behind it.</p>
                 </div>
-                            <div class="p-7">
-                    <h3 class="font-display text-lg">Clear, transparent billing</h3>
-                    <p class="mt-2.5 text-sm text-muted">You pay for the credits you choose to buy and use them when you need them. No automatic renewals. No hidden charges. No confusing billing traps.</p>
+                <ul class="space-y-2 text-sm text-muted">
+                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>MP3, WAV, MP4 input</li>
+                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Fast turnaround</li>
+                                    </ul>
+            </div>
+                    <div class="glass grid gap-6 rounded-2xl p-7 md:grid-cols-[1fr_1.3fr] md:items-center">
+                <div>
+                    <p class="font-mono text-xs text-muted">Audio</p>
+                    <h2 class="mt-2 font-display text-2xl">Voice Cloning</h2>
+                    <p class="mt-2.5 text-sm text-muted">Clone a voice from a short sample, then generate speech from any script using the cloned voice.</p>
                 </div>
-                            <div class="p-7">
-                    <h3 class="font-display text-lg">Accountability matters</h3>
-                    <p class="mt-2.5 text-sm text-muted">Powerful tools need responsible users. We maintain systems designed to identify and review activity that may violate our rules, and we reserve the right to take action when necessary.</p>
+                <ul class="space-y-2 text-sm text-muted">
+                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Short sample required</li>
+                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Any script, any length</li>
+                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Natural AI voice generation</li>
+                                    </ul>
+            </div>
+                    <div class="glass grid gap-6 rounded-2xl p-7 md:grid-cols-[1fr_1.3fr] md:items-center">
+                <div>
+                    <p class="font-mono text-xs text-muted">Video</p>
+                    <h2 class="mt-2 font-display text-2xl">Image to Video</h2>
+                    <p class="mt-2.5 text-sm text-muted">Turn a still image into a short animated video, with an optional motion prompt to describe how it should move.</p>
                 </div>
-                            <div class="p-7">
-                    <h3 class="font-display text-lg">Built for creators</h3>
-                    <p class="mt-2.5 text-sm text-muted">AI should make creation easier, not more complicated. StreamLive AI focuses on giving creators practical tools they can actually use — without unnecessary complexity.</p>
+                <ul class="space-y-2 text-sm text-muted">
+                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Optional motion description</li>
+                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Short-form video output</li>
+                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Simple image-to-video workflow</li>
+                                    </ul>
+            </div>
+                    <div class="glass grid gap-6 rounded-2xl p-7 md:grid-cols-[1fr_1.3fr] md:items-center">
+                <div>
+                    <p class="font-mono text-xs text-muted">Image</p>
+                    <h2 class="mt-2 font-display text-2xl">AI Image Edit</h2>
+                    <p class="mt-2.5 text-sm text-muted">Describe your edit in plain language and transform any photo — from backgrounds and lighting to objects and style.</p>
+                </div>
+                <ul class="space-y-2 text-sm text-muted">
+                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Plain-language instructions</li>
+                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Edit backgrounds, objects, lighting and more</li>
+                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Fast turnaround</li>
+                                    </ul>
+            </div>
+            </div>
+</section>
+
+
+<section class="relative border-t border-border px-6 py-24 md:px-12">
+    <div class="mx-auto max-w-6xl">
+        <h2 class="font-display text-3xl md:text-4xl">One platform. One credit system.</h2>
+        <div class="mt-10 grid gap-4 md:grid-cols-2">
+                            <div class="glass glow-card rounded-lg p-6">
+                    <h3 class="font-display text-lg">Use what you need</h3>
+                    <p class="mt-2 text-sm text-muted">Access all your AI tools from one platform without switching between different services.</p>
+                </div>
+                            <div class="glass glow-card rounded-lg p-6">
+                    <h3 class="font-display text-lg">Credits across every tool</h3>
+                    <p class="mt-2 text-sm text-muted">Purchase credits once and use them across the services you need.</p>
+                </div>
+                            <div class="glass glow-card rounded-lg p-6">
+                    <h3 class="font-display text-lg">Pay for what you use</h3>
+                    <p class="mt-2 text-sm text-muted">Credits are deducted based on the job or service you use, with Livestream metered every 2 seconds.</p>
+                </div>
+                            <div class="glass glow-card rounded-lg p-6">
+                    <h3 class="font-display text-lg">Built for any device</h3>
+                    <p class="mt-2 text-sm text-muted">Use StreamLive AI from your phone or laptop and access your tools wherever you work.</p>
                 </div>
                     </div>
     </div>
 </section>
 
-<section class="relative border-t border-border px-6 py-20 md:px-12">
-    <div class="mx-auto max-w-2xl text-center">
-        <h2 class="font-display text-3xl md:text-4xl">Why StreamLive AI?</h2>
-        <p class="mx-auto mt-5 max-w-lg text-muted">
-            AI technology is moving quickly. We believe access to it shouldn't be limited to people with
-            technical expertise or expensive setups.
-        </p>
-        <p class="mx-auto mt-4 max-w-lg text-muted">
-            StreamLive AI brings advanced synthetic-media capabilities into one simple platform, so creators can
-            spend less time figuring out the technology and more time creating.
-        </p>
-        <div class="mx-auto mt-8 flex max-w-xs flex-col gap-1.5 font-display text-xl text-paper">
-            <p>Simple to access.</p>
-            <p>Simple to use.</p>
-            <p class="text-signal">Powerful enough to create with.</p>
-        </div>
-    </div>
-</section>
-
 <section class="relative border-t border-border px-6 py-20 text-center md:px-12">
-    <h2 class="font-display text-3xl md:text-4xl">Want to see the platform?</h2>
-    <div class="mt-8 flex justify-center gap-4">
+    <h2 class="font-display text-3xl md:text-4xl">Ready to see it running?</h2>
+    <div class="mt-6 flex justify-center gap-4">
         <a href="register" class="btn-glow rounded-md bg-signal px-7 py-3 font-medium text-ink hover:brightness-95">Start creating</a>
-        <a href="features" class="rounded-md border border-border px-7 py-3 font-medium text-paper transition hover:border-signal/50">Explore features</a>
+        <a href="how-it-works" class="rounded-md border border-border px-7 py-3 font-medium text-paper transition hover:border-signal/50">See how it works</a>
     </div>
 </section>
     </main>
-    <footer class="relative border-t border-border px-6 py-14 md:px-12">
-    <div class="mx-auto grid max-w-6xl gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-        <div>
-            <div class="flex items-center gap-2">
-                <span class="h-2.5 w-2.5 rounded-full bg-signal tally-dot"></span>
-                <span class="font-display text-lg tracking-tight">StreamLive AI</span>
-            </div>
-            <p class="mt-3 max-w-xs text-sm text-muted">
-                One control room for powerful AI tools - build for creation, transformation, and real-time experiences.
-            </p>
-        </div>
-
-        <div>
-            <p class="font-mono text-xs uppercase tracking-wide text-muted">Product</p>
-            <ul class="mt-3 space-y-2 text-sm text-muted">
-                <li><a href="features" class="hover:text-paper">Features</a></li>
-                <li><a href="how-it-works" class="hover:text-paper">How It Works</a></li>
-                <li><a href="pricing" class="hover:text-paper">Pricing</a></li>
-            </ul>
-        </div>
-
-        <div>
-            <p class="font-mono text-xs uppercase tracking-wide text-muted">Company</p>
-            <ul class="mt-3 space-y-2 text-sm text-muted">
-                <li><a href="about" class="hover:text-paper">About Us</a></li>
-                <li><a href="contact" class="hover:text-paper">Contact</a></li>
-                <li><a href="register" class="hover:text-paper">Create account</a></li>
-                <li><a href="login" class="hover:text-paper">Log in</a></li>
-            </ul>
-        </div>
-
-        <div>
-            <p class="font-mono text-xs uppercase tracking-wide text-muted">Trust</p>
-            <ul class="mt-3 space-y-2 text-sm text-muted">
-                <li>Consent-logged jobs</li>
-                <li>No auto-renewal billing</li>
-                <li><a href="terms" class="hover:text-paper">Terms of Service</a></li>
-                <li><a href="privacy" class="hover:text-paper">Privacy Policy</a></li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="mx-auto mt-12 max-w-6xl border-t border-border pt-6 text-sm text-muted">
-        © 2026 StreamLive AI. Built to make AI simpler, faster, and more accessible.
-    </div>
-</footer>
+    <?php sleek_public_footer(); ?>
     </div>
         <script>
         // Lightweight reveal-on-scroll for elements marked .reveal — degrades
@@ -352,5 +345,5 @@
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"97ad44cc531f410e9330a892a6c3f2cf","r":1,"spa":2}' crossorigin="anonymous"></script>
 </body>
 
-<!-- Mirrored from sleekai.com.ng/about by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:04 GMT -->
+<!-- Mirrored from sleekai.com.ng/features by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:04 GMT -->
 </html>

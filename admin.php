@@ -1,5 +1,7 @@
 <?php
 require __DIR__ . '/inc/bootstrap.php';
+require __DIR__ . '/inc/catalog.php';
+require __DIR__ . '/inc/contact.php';
 $admin = require_super_admin();
 
 /** Form field => [config section, key, label]. Every secret the admin can set. */
@@ -60,10 +62,68 @@ if (sleek_is_post()) {
                 }
             }
         }
+    } elseif ($action === 'save_packs') {
+        // Validate every pack first; save all or nothing.
+        $in = is_array($_POST['packs'] ?? null) ? $_POST['packs'] : [];
+        $packs = [];
+        $problems = [];
+        foreach (sleek_pack_defaults() as $key => $default) {
+            $row = is_array($in[$key] ?? null) ? $in[$key] : [];
+            $name = trim(is_string($row['name'] ?? null) ? $row['name'] : '');
+            $credits = filter_var($row['credits'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 10000000]]);
+            $priceRaw = trim(is_string($row['price'] ?? null) ? $row['price'] : '');
+            $badge = trim(is_string($row['badge'] ?? null) ? $row['badge'] : '');
+            $lines = preg_split('/\R/', is_string($row['features'] ?? null) ? $row['features'] : '') ?: [];
+            $features = array_values(array_filter(array_map('trim', $lines), 'strlen'));
+            $label = $name !== '' ? $name : ucfirst($key);
+            if ($name === '' || mb_strlen($name) > 40) $problems[] = "{$label}: name is required (up to 40 characters).";
+            if ($credits === false) $problems[] = "{$label}: credits must be a whole number of at least 1.";
+            if (!preg_match('/^\d{1,6}(\.\d{1,2})?$/', $priceRaw) || (float) $priceRaw < 1) $problems[] = "{$label}: price must be at least \$1, with up to 2 decimals (e.g. 12 or 12.50).";
+            if (mb_strlen($badge) > 30) $problems[] = "{$label}: badge is limited to 30 characters.";
+            if (count($features) > 8) $problems[] = "{$label}: at most 8 feature lines.";
+            foreach ($features as $f) if (mb_strlen($f) > 80) { $problems[] = "{$label}: each feature line is limited to 80 characters."; break; }
+            $packs[$key] = ['name' => $name, 'credits' => (int) $credits, 'price' => (float) $priceRaw, 'badge' => $badge, 'features' => $features];
+        }
+        if ($problems) {
+            $notice = 'Prices not saved. ' . implode(' ', $problems);
+        } else {
+            require_once __DIR__ . '/inc/settings.php';
+            sleek_setting_set('packs', $packs);
+            sleek_redirect('admin?saved=packs#pricing');
+        }
+    } elseif ($action === 'save_site') {
+        require_once __DIR__ . '/inc/settings.php';
+        $telegram = sleek_normalize_telegram(is_string($_POST['telegram_url'] ?? null) ? $_POST['telegram_url'] : '');
+        $notify = trim(is_string($_POST['contact_notify_email'] ?? null) ? $_POST['contact_notify_email'] : '');
+        if ($telegram === null) {
+            $notice = 'Telegram link not saved: use a t.me link (https://t.me/yourchannel) or @yourchannel.';
+        } elseif ($notify !== '' && !filter_var($notify, FILTER_VALIDATE_EMAIL)) {
+            $notice = 'Notification email not saved: that is not a valid email address.';
+        } else {
+            sleek_setting_set('telegram_url', $telegram);
+            sleek_setting_set('contact_notify_email', $notify);
+            sleek_redirect('admin?saved=site#site');
+        }
+    } elseif ($action === 'message_read' || $action === 'message_unread' || $action === 'message_delete') {
+        $id = filter_var($_POST['message_id'] ?? null, FILTER_VALIDATE_INT);
+        if ($id) {
+            if ($action === 'message_delete') $db->prepare('DELETE FROM contact_messages WHERE id = ?')->execute([$id]);
+            else $db->prepare('UPDATE contact_messages SET read_at = ? WHERE id = ?')->execute([$action === 'message_read' ? time() : null, $id]);
+        }
+        sleek_redirect('admin#messages');
     }
 }
 
 if (($_GET['keys'] ?? '') === 'saved') $notice = 'Provider settings saved. Existing values stay hidden.';
+if (($_GET['saved'] ?? '') === 'packs') $notice = 'Prices saved. The pricing page, home page and billing page show them now.';
+if (($_GET['saved'] ?? '') === 'site') $notice = 'Community and notification settings saved.';
+
+require_once __DIR__ . '/inc/settings.php';
+$packs = sleek_packs();
+$telegramUrl = sleek_telegram_url();
+$notifyEmail = (string) sleek_setting('contact_notify_email', '');
+$messages = $db->query('SELECT * FROM contact_messages ORDER BY created_at DESC, id DESC LIMIT 100')->fetchAll();
+$unread = sleek_contact_unread_count();
 
 $users = $db->query('SELECT id,name,email,credits,role,created_at FROM users ORDER BY id DESC LIMIT 200')->fetchAll();
 $stats = [
@@ -82,10 +142,36 @@ $providers = [
 ?>
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>System Admin — <?= e((string) sleek_config('brand_name')) ?></title><style>
 *{box-sizing:border-box}body{margin:0;background:#14171c;color:#f5f6f7;font:15px Inter,system-ui,sans-serif}main{max-width:1180px;margin:auto;padding:32px 20px}h1,h2{font-family:Georgia,serif}a{color:#f2b705}.top{display:flex;justify-content:space-between;align-items:center;gap:16px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:24px 0}.card{background:#1c2027;border:1px solid #303640;border-radius:12px;padding:18px}.number{font-size:28px;font-weight:700}.muted{color:#a8aeb8}.notice{padding:12px;background:#263327;border-radius:8px;margin:16px 0}form{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}input,select,button{background:#14171c;color:#f5f6f7;border:1px solid #454c57;border-radius:6px;padding:9px}button{cursor:pointer;background:#f2b705;color:#14171c;font-weight:600}table{border-collapse:collapse;width:100%;min-width:720px}th,td{text-align:left;padding:11px;border-bottom:1px solid #303640}.overflow{overflow:auto}.setup{margin:20px 0}small{color:#a8aeb8}@media(max-width:600px){main{padding:20px 12px}.top{align-items:flex-start}}
+.pack{display:grid;gap:8px}.pack label{display:grid;gap:4px;font-size:13px;color:#a8aeb8}.pack input,.pack textarea{width:100%}textarea{background:#14171c;color:#f5f6f7;border:1px solid #454c57;border-radius:6px;padding:9px;font:inherit;resize:vertical}.packs{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin:16px 0}.wide{display:grid;gap:12px;max-width:560px}.wide label{display:grid;gap:4px}.msg{border-top:1px solid #303640;padding:14px 0}.msg.unread{border-left:3px solid #f2b705;padding-left:12px}.msg p{white-space:pre-wrap;margin:8px 0;overflow-wrap:anywhere}.msg form{display:inline-flex;margin:0 6px 0 0}.ghost{background:transparent;color:#f5f6f7;border:1px solid #454c57}.pill{background:#f2b705;color:#14171c;border-radius:99px;padding:1px 8px;font-size:12px;font-weight:700;margin-left:6px;font-family:Inter,system-ui,sans-serif}
 </style></head><body><main>
 <div class="top"><div><p class="muted"><?= e((string) sleek_config('brand_name')) ?> / Administration</p><h1>System control</h1><p class="muted">Signed in as <?= e($admin['email']) ?> · Super admin</p></div><a href="dashboard">User dashboard</a></div>
 <?php if ($notice): ?><p class="notice" role="status"><?= e($notice) ?></p><?php endif; ?>
 <section class="grid"><?php foreach ($stats as $label => $value): ?><article class="card"><div class="muted"><?= e(ucfirst($label)) ?></div><div class="number"><?= number_format($value) ?></div></article><?php endforeach; ?></section>
+<section class="card" id="pricing" style="margin-top:20px"><h2>Pricing</h2><p class="muted">Credit packs, priced in US dollars. Changes show at once on the pricing page, the home page (first three packs) and Credits &amp; billing. A payment already started keeps the price it was started at. Badge is optional (e.g. "Most popular"); a pack with a badge is highlighted.</p>
+<form method="post" style="display:block"><?= csrf_field() ?><input type="hidden" name="action" value="save_packs"><div class="packs">
+<?php foreach ($packs as $key => $p): ?><fieldset class="card pack" style="margin:0"><legend class="muted"><?= e($key) ?></legend>
+<label>Name<input required maxlength="40" name="packs[<?= e($key) ?>][name]" value="<?= e($p['name']) ?>"></label>
+<label>Credits<input required type="number" min="1" step="1" name="packs[<?= e($key) ?>][credits]" value="<?= (int) $p['credits'] ?>"></label>
+<label>Price (USD)<input required inputmode="decimal" pattern="\d{1,6}(\.\d{1,2})?" name="packs[<?= e($key) ?>][price]" value="<?= e(rtrim(rtrim(number_format((float) $p['price'], 2, '.', ''), '0'), '.')) ?>"></label>
+<label>Badge (optional)<input maxlength="30" name="packs[<?= e($key) ?>][badge]" value="<?= e($p['badge'] ?? '') ?>"></label>
+<label>Features, one per line<textarea rows="3" name="packs[<?= e($key) ?>][features]"><?= e(implode("\n", $p['features'])) ?></textarea></label>
+</fieldset><?php endforeach; ?></div><button>Save prices</button></form></section>
+
+<section class="card" id="site" style="margin-top:20px"><h2>Community &amp; notifications</h2>
+<form method="post" class="wide" style="display:grid"><?= csrf_field() ?><input type="hidden" name="action" value="save_site">
+<label>Telegram channel<input name="telegram_url" placeholder="https://t.me/yourchannel or @yourchannel" value="<?= e($telegramUrl) ?>"><small>Shown as "Join us on Telegram" in the footer of every public page, on the Contact page and in the dashboard sidebar. Leave empty to hide it.</small></label>
+<label>Email new contact messages to (optional)<input type="email" name="contact_notify_email" placeholder="you@example.com" value="<?= e($notifyEmail) ?>"><small>Messages are always kept in the inbox below; this also emails each one, using the site's mail settings.</small></label>
+<div><button>Save</button></div></form></section>
+
+<section class="card" id="messages" style="margin-top:20px"><h2>Messages<?php if ($unread): ?><span class="pill"><?= $unread ?> new</span><?php endif; ?></h2><p class="muted">From the Contact page. Reply by clicking the sender's email. Latest 100 shown.</p>
+<?php if (!$messages): ?><p class="muted">No messages yet.</p><?php endif; ?>
+<?php foreach ($messages as $m): $isUnread = $m['read_at'] === null; ?><article class="msg<?= $isUnread ? ' unread' : '' ?>">
+<strong><?= e($m['name']) ?></strong> · <a href="mailto:<?= e($m['email']) ?>?subject=<?= rawurlencode('Re: your message to ' . sleek_config('brand_name')) ?>"><?= e($m['email']) ?></a> <small>· <?= e(date('Y-m-d H:i', (int) $m['created_at'])) ?><?= $m['user_id'] ? ' · account #' . (int) $m['user_id'] : '' ?></small>
+<p><?= e($m['message']) ?></p>
+<form method="post"><?= csrf_field() ?><input type="hidden" name="message_id" value="<?= (int) $m['id'] ?>"><button class="ghost" name="action" value="<?= $isUnread ? 'message_read' : 'message_unread' ?>"><?= $isUnread ? 'Mark read' : 'Mark unread' ?></button></form>
+<form method="post" onsubmit="return confirm('Delete this message?')"><?= csrf_field() ?><input type="hidden" name="message_id" value="<?= (int) $m['id'] ?>"><button class="ghost" name="action" value="message_delete">Delete</button></form>
+</article><?php endforeach; ?></section>
+
 <section class="card"><h2>Provider connections</h2><p class="muted">Keys are stored privately on this server. Saved values are never shown here. Leave a field blank to keep its current value; use Clear to remove it.</p><div class="grid"><?php foreach ($providers as $name => $connected): ?><article class="card"><strong><?= e($name) ?></strong><p class="muted"><?= $connected ? 'Configured' : 'Keys missing' ?></p></article><?php endforeach; ?></div><form method="post" autocomplete="off"><?= csrf_field() ?><input type="hidden" name="action" value="save_provider_keys"><?php foreach (sleek_admin_key_fields() as $field => [$section, $keyName, $label]): $isSet = (sleek_config($section)[$keyName] ?? '') !== ''; ?><label class="card"><strong><?= e($label) ?></strong><input type="password" name="<?= e($field) ?>" autocomplete="new-password" placeholder="<?= $isSet ? 'Leave blank to keep current value' : 'Not set — paste it here' ?>"><span><input type="checkbox" name="clear_<?= e($field) ?>" value="1"> Clear saved value</span></label><?php endforeach; ?><button>Save provider keys</button></form></section>
 <section class="card setup"><h2>Initial super admin setup</h2><p class="muted">Use the exact owner email and setup token configured privately in inc/config.local.php. This can transfer the super admin role to the verified owner account.</p><form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="promote_initial"><input required type="email" name="email" placeholder="Configured owner email"><input required type="password" name="setup_token" placeholder="Private setup token"><button>Verify and assign</button></form></section>
 <section class="card"><h2>Accounts</h2><p class="muted">Showing latest <?= count($users) ?> of <?= number_format($stats['users']) ?> accounts. The super admin role cannot be changed from the table.</p><div class="overflow"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Credits</th><th>Joined</th><th>Change role</th></tr></thead><tbody>

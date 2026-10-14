@@ -16,17 +16,6 @@ function sleek_greeting(): string
     return 'Good evening';
 }
 
-/**
- * Money in minor units (cents, kobo), formatted the way the billing page shows it:
- * $12, $12.50, ₦18,000. Returns HTML-safe text.
- */
-function sleek_money(int $minor, string $currency): string
-{
-    $symbol = ['USD' => '$', 'NGN' => '&#8358;'][strtoupper($currency)] ?? e(strtoupper($currency)) . ' ';
-    $amount = $minor / 100;
-    return $symbol . number_format($amount, $minor % 100 === 0 ? 0 : 2);
-}
-
 /** "3 days ago" style age for a unix timestamp. */
 function sleek_ago(int $ts): string
 {
@@ -79,8 +68,9 @@ $user = [
     'referral_earned' => $totals['referral_earned'],
 ];
 
+require_once __DIR__ . '/settings.php';
 $site = [
-    'telegram_url' => '#',
+    'telegram_url' => sleek_telegram_url(),   // set at /admin → Community; '' hides the button
 ];
 
 /* ------------------------------------------------------------- catalogue */

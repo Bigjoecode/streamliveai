@@ -1,13 +1,41 @@
+<?php
+require __DIR__ . '/inc/public.php';
+require __DIR__ . '/inc/contact.php';
+
+// POST → save → redirect back here (PRG), so a refresh can't resend it.
+$errors = [];
+$old    = ['name' => '', 'email' => '', 'message' => ''];
+if (sleek_is_post()) {
+    csrf_verify();
+    foreach ($old as $k => $_) $old[$k] = is_string($_POST[$k] ?? null) ? $_POST[$k] : '';
+    $me = current_user();
+    // Honeypot: people never see "website"; bots fill everything in. Pretend it worked.
+    if (($_POST['website'] ?? '') !== '') {
+        sleek_flash('success', 'Thanks — your message is on its way. We’ll reply by email.');
+        sleek_redirect('contact');
+    }
+    $errors = sleek_contact_submit($old['name'], $old['email'], $old['message'], (string) ($_SERVER['REMOTE_ADDR'] ?? ''), $me ? (int) $me['id'] : null);
+    if (!$errors) {
+        sleek_flash('success', 'Thanks — your message is on its way. We’ll reply by email.');
+        sleek_redirect('contact');
+    }
+} elseif ($me = current_user()) {
+    $old['name']  = (string) $me['name'];
+    $old['email'] = (string) $me['email'];
+}
+$flash    = sleek_flash_take();
+$telegram = sleek_telegram_url();
+$fieldErr = fn(string $k) => isset($errors[$k]) ? '<p class="mt-1 text-sm text-tally">' . e($errors[$k]) . '</p>' : '';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
-<!-- Mirrored from sleekai.com.ng/features by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:04 GMT -->
+<!-- Mirrored from sleekai.com.ng/contact by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:05 GMT -->
 <!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="uKDa2mNsXgNrAjWHvf8CXCvak3qQM6vhPXSCiODL">
-    <title>Features — StreamLive AI</title>
+    <title>Contact — StreamLive AI</title>
 
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -162,7 +190,7 @@
                     Home
                 </a>
                             <a href="features"
-                   class="transition hover:text-paper text-paper">
+                   class="transition hover:text-paper ">
                     Features
                 </a>
                             <a href="how-it-works"
@@ -192,7 +220,7 @@
                     <a href="./" class="whitespace-nowrap ">
                 Home
             </a>
-                    <a href="features" class="whitespace-nowrap text-signal">
+                    <a href="features" class="whitespace-nowrap ">
                 Features
             </a>
                     <a href="how-it-works" class="whitespace-nowrap ">
@@ -208,165 +236,71 @@
 </header>
     <main>
         
-<section class="relative overflow-hidden px-6 pb-4 pt-20 md:px-12 md:pt-28">
-    <div class="pointer-events-none absolute -right-40 -top-36 h-[520px] w-[520px] rounded-full bg-signal/[0.16] blur-[60px]" aria-hidden="true"></div>
+<section class="relative overflow-hidden px-6 pb-20 pt-20 md:px-12 md:pt-28">
+    <div class="pointer-events-none absolute left-1/2 top-[-160px] h-[480px] w-[640px] -translate-x-1/2 rounded-full bg-signal/[0.14] blur-[60px]" aria-hidden="true"></div>
 
-    <div class="relative mx-auto max-w-2xl">
+    <div class="relative mx-auto max-w-xl text-center">
         <h1 class="font-display text-5xl font-semibold leading-[1.05] tracking-tight text-paper md:text-6xl">
-            Everything you can do with StreamLive AI
+            Get in touch
         </h1>
-        <p class="mt-5 max-w-lg text-lg text-muted">
-            Powerful AI tools for creation, transformation, and real-time experiences — all in one platform.
+        <p class="mx-auto mt-4 max-w-md text-muted">
+            Questions, feedback, or something not working right — send us a message and we'll get back to you.
         </p>
     </div>
-</section>
 
-
-<section class="relative px-6 py-16 md:px-12">
-    <div class="mx-auto max-w-5xl space-y-4">
+    <div class="relative mx-auto mt-12 max-w-lg">
         
-        <div class="grid gap-8 rounded-2xl border border-signal/25 bg-signal/[0.04] p-8 md:grid-cols-[1fr_1.3fr] md:items-center">
-            <div>
-                <p class="font-mono text-xs text-signal">Livestream</p>
-                <h2 class="mt-2 font-display text-3xl">Livestream</h2>
-                <p class="mt-3 text-muted">Transform your live camera feed in real time and bring AI-powered effects to your live experience.</p>
-            </div>
-            <ul class="space-y-3 text-sm text-paper">
-                                    <li class="flex items-center gap-3"><span class="h-1.5 w-1.5 rounded-full bg-reel"></span>Real-time processing</li>
-                                    <li class="flex items-center gap-3"><span class="h-1.5 w-1.5 rounded-full bg-reel"></span>Phone and laptop compatible</li>
-                                    <li class="flex items-center gap-3"><span class="h-1.5 w-1.5 rounded-full bg-reel"></span>Metered per second</li>
-                            </ul>
-        </div>
+        <?php if ($flash): ?>
+            <div role="status" class="mb-6 rounded-lg border border-reel/40 bg-reel/10 px-4 py-3 text-sm text-paper"><?= e($flash['message']) ?></div>
+        <?php endif; ?>
+        <?php if (isset($errors['form'])): ?>
+            <div role="alert" class="mb-6 rounded-lg border border-tally/40 bg-tally/10 px-4 py-3 text-sm text-paper"><?= e($errors['form']) ?></div>
+        <?php endif; ?>
 
-                    <div class="glass grid gap-6 rounded-2xl p-7 md:grid-cols-[1fr_1.3fr] md:items-center">
-                <div>
-                    <p class="font-mono text-xs text-muted">Audio</p>
-                    <h2 class="mt-2 font-display text-2xl">Voice Isolator</h2>
-                    <p class="mt-2.5 text-sm text-muted">Strip background noise from any recording — an interview, a voice memo, a noisy call — keeping just the speech behind it.</p>
-                </div>
-                <ul class="space-y-2 text-sm text-muted">
-                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>MP3, WAV, MP4 input</li>
-                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Fast turnaround</li>
-                                    </ul>
-            </div>
-                    <div class="glass grid gap-6 rounded-2xl p-7 md:grid-cols-[1fr_1.3fr] md:items-center">
-                <div>
-                    <p class="font-mono text-xs text-muted">Audio</p>
-                    <h2 class="mt-2 font-display text-2xl">Voice Cloning</h2>
-                    <p class="mt-2.5 text-sm text-muted">Clone a voice from a short sample, then generate speech from any script using the cloned voice.</p>
-                </div>
-                <ul class="space-y-2 text-sm text-muted">
-                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Short sample required</li>
-                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Any script, any length</li>
-                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Natural AI voice generation</li>
-                                    </ul>
-            </div>
-                    <div class="glass grid gap-6 rounded-2xl p-7 md:grid-cols-[1fr_1.3fr] md:items-center">
-                <div>
-                    <p class="font-mono text-xs text-muted">Video</p>
-                    <h2 class="mt-2 font-display text-2xl">Image to Video</h2>
-                    <p class="mt-2.5 text-sm text-muted">Turn a still image into a short animated video, with an optional motion prompt to describe how it should move.</p>
-                </div>
-                <ul class="space-y-2 text-sm text-muted">
-                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Optional motion description</li>
-                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Short-form video output</li>
-                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Simple image-to-video workflow</li>
-                                    </ul>
-            </div>
-                    <div class="glass grid gap-6 rounded-2xl p-7 md:grid-cols-[1fr_1.3fr] md:items-center">
-                <div>
-                    <p class="font-mono text-xs text-muted">Image</p>
-                    <h2 class="mt-2 font-display text-2xl">AI Image Edit</h2>
-                    <p class="mt-2.5 text-sm text-muted">Describe your edit in plain language and transform any photo — from backgrounds and lighting to objects and style.</p>
-                </div>
-                <ul class="space-y-2 text-sm text-muted">
-                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Plain-language instructions</li>
-                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Edit backgrounds, objects, lighting and more</li>
-                                            <li class="flex items-center gap-2.5"><span class="h-1 w-1 rounded-full bg-border"></span>Fast turnaround</li>
-                                    </ul>
-            </div>
-            </div>
-</section>
+        <form method="POST" action="contact" class="glass space-y-5 rounded-xl p-7 shadow-lg shadow-black/20">
+            <?= csrf_field() ?>
 
+            <div class="hidden" aria-hidden="true">
+                <label for="website">Leave this field empty</label>
+                <input type="text" name="website" id="website" tabindex="-1" autocomplete="off">
+            </div>
 
-<section class="relative border-t border-border px-6 py-24 md:px-12">
-    <div class="mx-auto max-w-6xl">
-        <h2 class="font-display text-3xl md:text-4xl">One platform. One credit system.</h2>
-        <div class="mt-10 grid gap-4 md:grid-cols-2">
-                            <div class="glass glow-card rounded-lg p-6">
-                    <h3 class="font-display text-lg">Use what you need</h3>
-                    <p class="mt-2 text-sm text-muted">Access all your AI tools from one platform without switching between different services.</p>
-                </div>
-                            <div class="glass glow-card rounded-lg p-6">
-                    <h3 class="font-display text-lg">Credits across every tool</h3>
-                    <p class="mt-2 text-sm text-muted">Purchase credits once and use them across the services you need.</p>
-                </div>
-                            <div class="glass glow-card rounded-lg p-6">
-                    <h3 class="font-display text-lg">Pay for what you use</h3>
-                    <p class="mt-2 text-sm text-muted">Credits are deducted based on the job or service you use, with Livestream metered every 2 seconds.</p>
-                </div>
-                            <div class="glass glow-card rounded-lg p-6">
-                    <h3 class="font-display text-lg">Built for any device</h3>
-                    <p class="mt-2 text-sm text-muted">Use StreamLive AI from your phone or laptop and access your tools wherever you work.</p>
-                </div>
-                    </div>
-    </div>
-</section>
+            <label class="block">
+                <span class="mb-1 block text-sm font-medium text-paper">Name</span>
+                <input required type="text" name="name" maxlength="100" value="<?= e($old['name']) ?>"
+                       class="w-full rounded-md border border-border bg-ink/60 px-3 py-2.5 text-sm text-paper">
+                <?= $fieldErr('name') ?>
+            </label>
 
-<section class="relative border-t border-border px-6 py-20 text-center md:px-12">
-    <h2 class="font-display text-3xl md:text-4xl">Ready to see it running?</h2>
-    <div class="mt-6 flex justify-center gap-4">
-        <a href="register" class="btn-glow rounded-md bg-signal px-7 py-3 font-medium text-ink hover:brightness-95">Start creating</a>
-        <a href="how-it-works" class="rounded-md border border-border px-7 py-3 font-medium text-paper transition hover:border-signal/50">See how it works</a>
+            <label class="block">
+                <span class="mb-1 block text-sm font-medium text-paper">Email</span>
+                <input required type="email" name="email" maxlength="254" value="<?= e($old['email']) ?>"
+                       class="w-full rounded-md border border-border bg-ink/60 px-3 py-2.5 text-sm text-paper">
+                <?= $fieldErr('email') ?>
+            </label>
+
+            <label class="block">
+                <span class="mb-1 block text-sm font-medium text-paper">Message</span>
+                <textarea required name="message" rows="6" maxlength="5000"
+                          class="w-full rounded-md border border-border bg-ink/60 p-3 text-sm text-paper"><?= e($old['message']) ?></textarea>
+                <?= $fieldErr('message') ?>
+            </label>
+
+            <button type="submit" class="btn-glow w-full rounded-md bg-signal py-3 font-medium text-ink hover:brightness-95">
+                Send message
+            </button>
+        </form>
+
+        <?php if ($telegram !== ''): ?>
+            <a href="<?= e($telegram) ?>" target="_blank" rel="noopener"
+               class="mt-5 flex items-center justify-center gap-2.5 rounded-xl border border-border px-4 py-3.5 text-sm font-medium text-paper hover:border-signal/50">
+                <?= sleek_telegram_icon('h-5 w-5 text-signal') ?> Prefer chat? Join our Telegram channel
+            </a>
+        <?php endif; ?>
     </div>
 </section>
     </main>
-    <footer class="relative border-t border-border px-6 py-14 md:px-12">
-    <div class="mx-auto grid max-w-6xl gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-        <div>
-            <div class="flex items-center gap-2">
-                <span class="h-2.5 w-2.5 rounded-full bg-signal tally-dot"></span>
-                <span class="font-display text-lg tracking-tight">StreamLive AI</span>
-            </div>
-            <p class="mt-3 max-w-xs text-sm text-muted">
-                One control room for powerful AI tools - build for creation, transformation, and real-time experiences.
-            </p>
-        </div>
-
-        <div>
-            <p class="font-mono text-xs uppercase tracking-wide text-muted">Product</p>
-            <ul class="mt-3 space-y-2 text-sm text-muted">
-                <li><a href="features" class="hover:text-paper">Features</a></li>
-                <li><a href="how-it-works" class="hover:text-paper">How It Works</a></li>
-                <li><a href="pricing" class="hover:text-paper">Pricing</a></li>
-            </ul>
-        </div>
-
-        <div>
-            <p class="font-mono text-xs uppercase tracking-wide text-muted">Company</p>
-            <ul class="mt-3 space-y-2 text-sm text-muted">
-                <li><a href="about" class="hover:text-paper">About Us</a></li>
-                <li><a href="contact" class="hover:text-paper">Contact</a></li>
-                <li><a href="register" class="hover:text-paper">Create account</a></li>
-                <li><a href="login" class="hover:text-paper">Log in</a></li>
-            </ul>
-        </div>
-
-        <div>
-            <p class="font-mono text-xs uppercase tracking-wide text-muted">Trust</p>
-            <ul class="mt-3 space-y-2 text-sm text-muted">
-                <li>Consent-logged jobs</li>
-                <li>No auto-renewal billing</li>
-                <li><a href="terms" class="hover:text-paper">Terms of Service</a></li>
-                <li><a href="privacy" class="hover:text-paper">Privacy Policy</a></li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="mx-auto mt-12 max-w-6xl border-t border-border pt-6 text-sm text-muted">
-        © 2026 StreamLive AI. Built to make AI simpler, faster, and more accessible.
-    </div>
-</footer>
+    <?php sleek_public_footer(); ?>
     </div>
         <script>
         // Lightweight reveal-on-scroll for elements marked .reveal — degrades
@@ -390,5 +324,5 @@
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"97ad44cc531f410e9330a892a6c3f2cf","r":1,"spa":2}' crossorigin="anonymous"></script>
 </body>
 
-<!-- Mirrored from sleekai.com.ng/features by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:04 GMT -->
+<!-- Mirrored from sleekai.com.ng/contact by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:05 GMT -->
 </html>

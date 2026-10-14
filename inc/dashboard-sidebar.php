@@ -35,12 +35,14 @@ if (($authUser['role'] ?? 'user') === 'super_admin') {
     <div class="mx-6 my-5 border-t border-border"></div>
 
     <div class="space-y-3 px-4 pb-6">
-        <a href="<?= e($site['telegram_url']) ?>" class="flex items-center justify-center gap-2.5 rounded-xl border border-[#29A9EB]/35 bg-[#29A9EB]/[0.07] px-4 py-3 text-[14px] font-medium text-paper transition-colors hover:bg-[#29A9EB]/[0.12]">
+        <?php if ($site['telegram_url'] !== ''): ?>
+        <a href="<?= e($site['telegram_url']) ?>" target="_blank" rel="noopener" class="flex items-center justify-center gap-2.5 rounded-xl border border-[#29A9EB]/35 bg-[#29A9EB]/[0.07] px-4 py-3 text-[14px] font-medium text-paper transition-colors hover:bg-[#29A9EB]/[0.12]">
             <svg class="h-[18px] w-[18px] text-[#29A9EB]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm4.64 6.8-1.55 7.33c-.12.52-.42.65-.86.4l-2.37-1.75-1.15 1.1c-.13.13-.24.24-.48.24l.17-2.43 4.42-4c.2-.17-.04-.26-.3-.1l-5.46 3.44-2.35-.74c-.51-.16-.52-.51.11-.76l9.17-3.54c.43-.15.8.1.66.8Z"/>
             </svg>
             Join our Telegram
         </a>
+        <?php endif; ?>
         <a href="contact" class="flex items-center justify-center gap-2.5 rounded-xl border border-border px-4 py-3 text-[14px] font-medium text-paper transition-colors hover:border-signal/35">
             <svg class="h-[18px] w-[18px] text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                 <circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.4" stroke-linecap="round"/><circle cx="12" cy="16.8" r=".9" fill="currentColor" stroke="none"/>

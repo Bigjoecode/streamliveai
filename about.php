@@ -1,13 +1,13 @@
+<?php require __DIR__ . '/inc/public.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 
-<!-- Mirrored from sleekai.com.ng/privacy by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:06 GMT -->
+<!-- Mirrored from sleekai.com.ng/about by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:04 GMT -->
 <!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="uKDa2mNsXgNrAjWHvf8CXCvak3qQM6vhPXSCiODL">
-    <title>Privacy Policy — StreamLive AI</title>
+    <title>About Us — StreamLive AI</title>
 
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -174,7 +174,7 @@
                     Pricing
                 </a>
                             <a href="about"
-                   class="transition hover:text-paper ">
+                   class="transition hover:text-paper text-paper">
                     About Us
                 </a>
                     </nav>
@@ -201,164 +201,91 @@
                     <a href="pricing" class="whitespace-nowrap ">
                 Pricing
             </a>
-                    <a href="about" class="whitespace-nowrap ">
+                    <a href="about" class="whitespace-nowrap text-signal">
                 About Us
             </a>
             </nav>
 </header>
     <main>
-        <div class="mx-auto max-w-3xl px-6 py-16 md:px-12">
-    <p class="font-mono text-xs uppercase tracking-wide text-signal">Legal</p>
-    <h1 class="mt-3 font-display text-4xl">Privacy Policy</h1>
-    <p class="mt-2 text-sm text-muted">Last updated: September 19, 2026</p>
+        
+<section class="relative overflow-hidden px-6 pb-4 pt-20 md:px-12 md:pt-28">
+    <div class="pointer-events-none absolute -bottom-44 -left-32 h-[540px] w-[540px] rounded-full bg-signal/[0.12] blur-[70px]" aria-hidden="true"></div>
 
-    <div class="prose-legal mt-10 space-y-8 text-muted">
-        <section>
-            <h2 class="font-display text-xl text-paper">1. What this covers</h2>
-            <p class="mt-2 leading-relaxed">
-                This policy explains what personal data StreamLive AI collects, why, and what rights you have over it.
-                Because our Services involve faces and voices, we've tried to be direct about exactly what
-                happens to that specific kind of data, rather than burying it in generic language.
-            </p>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">2. Data we collect</h2>
-            <ul class="mt-2 list-disc space-y-1 pl-5">
-                <li><strong class="text-paper">Account data:</strong> name, email address, and password (stored as a one-way hash, never in plain text), or your Google/Facebook profile information if you sign up that way.</li>
-                <li><strong class="text-paper">Face and voice data:</strong> photos, voice samples, and recordings you upload to use a specific tool. These are processed to generate your output and, for Voice Cloning specifically, a voice model is created with our AI provider (ElevenLabs) to fulfill your request.</li>
-                <li><strong class="text-paper">Payment data:</strong> we never see or store your card number or wallet keys. Flutterwave (cards) and NOWPayments (crypto) handle payment details directly and only pass us confirmation that a payment succeeded.</li>
-                <li><strong class="text-paper">Usage data:</strong> which tools you use, job history, and credit transactions, so your dashboard and billing history work correctly.</li>
-            </ul>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">3. Why we collect it</h2>
-            <p class="mt-2 leading-relaxed">
-                To provide the Services you request, to bill you correctly, to detect and act on violations of
-                our Terms of Service (including reviewing flagged content), to communicate with you about your
-                account (password resets, job completion, purchase confirmations), and to improve the platform.
-            </p>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">4. Who we share it with</h2>
-            <p class="mt-2 leading-relaxed">We share data only where necessary to run the Services:</p>
-            <ul class="mt-2 list-disc space-y-1 pl-5">
-                <li><strong class="text-paper">ElevenLabs</strong> — processes voice samples and text for Voice Cloning, Text to Speech, Voice Isolator, and Voice Changer.</li>
-                <li><strong class="text-paper">Decart</strong> — processes reference face images and live video for Livestream (this runs as a direct connection between your browser and Decart, not routed through our server).</li>
-                <li><strong class="text-paper">Flutterwave</strong> — processes card payments for credit purchases.</li>
-                <li><strong class="text-paper">NOWPayments</strong> — processes cryptocurrency payments for credit purchases.</li>
-                <li><strong class="text-paper">Google / Facebook</strong> — if you use social sign-in, they confirm your identity and share your basic profile information with us.</li>
-            </ul>
-            <p class="mt-3 leading-relaxed">
-                We do not sell your personal data, your face, or your voice to anyone, for any purpose.
-            </p>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">5. Data retention</h2>
-            <p class="mt-2 leading-relaxed">
-                We retain account and job history data for as long as your account is active, so your dashboard,
-                billing history, and job history continue to work. Uploaded voice samples are stored privately
-                and are not shared beyond the AI provider used to process them. You can request deletion of your
-                account and associated data (see Section 7).
-            </p>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">6. Content moderation</h2>
-            <p class="mt-2 leading-relaxed">
-                Jobs that use a real face or voice can be flagged for review by our team. Reviewing a flag may
-                involve a human looking at the job's output and metadata to assess whether it violates our
-                Terms of Service. This is limited to jobs that are flagged, not a review of everything generated
-                on the platform.
-            </p>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">7. Your rights</h2>
-            <p class="mt-2 leading-relaxed">
-                You can request access to, correction of, or deletion of your personal data at any time by
-                contacting us at <a href="cdn-cgi/l/email-protection.html#c7afa2ababa887b4aba2a2aca6aee9a4a8aae9a9a0" class="text-signal hover:underline"><span class="__cf_email__" data-cfemail="f69e939a9a99b6859a93939d979fd895999bd89891">[email&#160;protected]</span></a>.
-                We'll respond within a reasonable timeframe and in line with applicable data protection law,
-                including the Nigeria Data Protection Act.
-            </p>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">8. Cookies and sessions</h2>
-            <p class="mt-2 leading-relaxed">
-                We use a session cookie to keep you logged in and to remember referral links you've followed.
-                We don't use third-party advertising trackers.
-            </p>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">9. Changes to this policy</h2>
-            <p class="mt-2 leading-relaxed">
-                We may update this policy from time to time. Material changes will be reflected by updating the
-                "Last updated" date above.
-            </p>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">10. Contact</h2>
-            <p class="mt-2 leading-relaxed">
-                Questions about this policy or your data can be sent to <a href="cdn-cgi/l/email-protection.html#b9d1dcd5d5d6f9cad5dcdcd2d8d097dad6d497d7de" class="text-signal hover:underline"><span class="__cf_email__" data-cfemail="fc9499909093bc8f909999979d95d29f9391d2929b">[email&#160;protected]</span></a>.
-            </p>
-        </section>
+    <div class="relative mx-auto max-w-2xl">
+        <p class="font-display text-xl italic text-signal">Meet StreamLive AI.</p>
+        <h1 class="mt-4 font-display text-4xl font-semibold leading-[1.15] tracking-tight text-paper md:text-5xl">
+            Powerful AI tools, made simple.
+        </h1>
     </div>
-</div>
+</section>
+
+<section class="relative px-6 py-12 md:px-12">
+    <div class="mx-auto max-w-2xl space-y-5 text-lg leading-relaxed text-muted">
+        <p>
+            StreamLive AI gives creators access to powerful tools for generating and transforming synthetic media —
+            from AI-powered video and voice to real-time experiences.
+        </p>
+        <p>
+            We make advanced AI tools easier to access, easier to use, and easier to understand.
+        </p>
+    </div>
+</section>
+
+<section class="relative border-t border-border px-6 py-20 md:px-12">
+    <div class="mx-auto max-w-5xl">
+        <p class="font-mono text-xs uppercase tracking-wide text-signal">Principles</p>
+        <h2 class="mt-2 font-display text-2xl">What we believe</h2>
+        <div class="mt-8 grid divide-y divide-border overflow-hidden rounded-2xl border border-border md:grid-cols-2 md:divide-x md:divide-y-0">
+                            <div class="p-7">
+                    <h3 class="font-display text-lg">Consent comes first</h3>
+                    <p class="mt-2.5 text-sm text-muted">If you&#039;re using someone&#039;s face or voice, you should have the right or permission to use it. We expect users to respect that responsibility when creating synthetic media with StreamLive AI.</p>
+                </div>
+                            <div class="p-7">
+                    <h3 class="font-display text-lg">Clear, transparent billing</h3>
+                    <p class="mt-2.5 text-sm text-muted">You pay for the credits you choose to buy and use them when you need them. No automatic renewals. No hidden charges. No confusing billing traps.</p>
+                </div>
+                            <div class="p-7">
+                    <h3 class="font-display text-lg">Accountability matters</h3>
+                    <p class="mt-2.5 text-sm text-muted">Powerful tools need responsible users. We maintain systems designed to identify and review activity that may violate our rules, and we reserve the right to take action when necessary.</p>
+                </div>
+                            <div class="p-7">
+                    <h3 class="font-display text-lg">Built for creators</h3>
+                    <p class="mt-2.5 text-sm text-muted">AI should make creation easier, not more complicated. StreamLive AI focuses on giving creators practical tools they can actually use — without unnecessary complexity.</p>
+                </div>
+                    </div>
+    </div>
+</section>
+
+<section class="relative border-t border-border px-6 py-20 md:px-12">
+    <div class="mx-auto max-w-2xl text-center">
+        <h2 class="font-display text-3xl md:text-4xl">Why StreamLive AI?</h2>
+        <p class="mx-auto mt-5 max-w-lg text-muted">
+            AI technology is moving quickly. We believe access to it shouldn't be limited to people with
+            technical expertise or expensive setups.
+        </p>
+        <p class="mx-auto mt-4 max-w-lg text-muted">
+            StreamLive AI brings advanced synthetic-media capabilities into one simple platform, so creators can
+            spend less time figuring out the technology and more time creating.
+        </p>
+        <div class="mx-auto mt-8 flex max-w-xs flex-col gap-1.5 font-display text-xl text-paper">
+            <p>Simple to access.</p>
+            <p>Simple to use.</p>
+            <p class="text-signal">Powerful enough to create with.</p>
+        </div>
+    </div>
+</section>
+
+<section class="relative border-t border-border px-6 py-20 text-center md:px-12">
+    <h2 class="font-display text-3xl md:text-4xl">Want to see the platform?</h2>
+    <div class="mt-8 flex justify-center gap-4">
+        <a href="register" class="btn-glow rounded-md bg-signal px-7 py-3 font-medium text-ink hover:brightness-95">Start creating</a>
+        <a href="features" class="rounded-md border border-border px-7 py-3 font-medium text-paper transition hover:border-signal/50">Explore features</a>
+    </div>
+</section>
     </main>
-    <footer class="relative border-t border-border px-6 py-14 md:px-12">
-    <div class="mx-auto grid max-w-6xl gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-        <div>
-            <div class="flex items-center gap-2">
-                <span class="h-2.5 w-2.5 rounded-full bg-signal tally-dot"></span>
-                <span class="font-display text-lg tracking-tight">StreamLive AI</span>
-            </div>
-            <p class="mt-3 max-w-xs text-sm text-muted">
-                One control room for powerful AI tools - build for creation, transformation, and real-time experiences.
-            </p>
-        </div>
-
-        <div>
-            <p class="font-mono text-xs uppercase tracking-wide text-muted">Product</p>
-            <ul class="mt-3 space-y-2 text-sm text-muted">
-                <li><a href="features" class="hover:text-paper">Features</a></li>
-                <li><a href="how-it-works" class="hover:text-paper">How It Works</a></li>
-                <li><a href="pricing" class="hover:text-paper">Pricing</a></li>
-            </ul>
-        </div>
-
-        <div>
-            <p class="font-mono text-xs uppercase tracking-wide text-muted">Company</p>
-            <ul class="mt-3 space-y-2 text-sm text-muted">
-                <li><a href="about" class="hover:text-paper">About Us</a></li>
-                <li><a href="contact" class="hover:text-paper">Contact</a></li>
-                <li><a href="register" class="hover:text-paper">Create account</a></li>
-                <li><a href="login" class="hover:text-paper">Log in</a></li>
-            </ul>
-        </div>
-
-        <div>
-            <p class="font-mono text-xs uppercase tracking-wide text-muted">Trust</p>
-            <ul class="mt-3 space-y-2 text-sm text-muted">
-                <li>Consent-logged jobs</li>
-                <li>No auto-renewal billing</li>
-                <li><a href="terms" class="hover:text-paper">Terms of Service</a></li>
-                <li><a href="privacy" class="hover:text-paper">Privacy Policy</a></li>
-            </ul>
-        </div>
+    <?php sleek_public_footer(); ?>
     </div>
-
-    <div class="mx-auto mt-12 max-w-6xl border-t border-border pt-6 text-sm text-muted">
-        © 2026 StreamLive AI. Built to make AI simpler, faster, and more accessible.
-    </div>
-</footer>
-    </div>
-        <script data-cfasync="false" src="cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        <script>
         // Lightweight reveal-on-scroll for elements marked .reveal — degrades
         // gracefully (everything's just visible) if IntersectionObserver isn't available.
         if ('IntersectionObserver' in window) {
@@ -380,5 +307,5 @@
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"97ad44cc531f410e9330a892a6c3f2cf","r":1,"spa":2}' crossorigin="anonymous"></script>
 </body>
 
-<!-- Mirrored from sleekai.com.ng/privacy by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:06 GMT -->
+<!-- Mirrored from sleekai.com.ng/about by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:04 GMT -->
 </html>

@@ -8,6 +8,9 @@
 # the rewrite below does that job explicitly.
 Options -Indexes -MultiViews
 
+# The home page is PHP (it renders the live pack prices).
+DirectoryIndex index.php index.html
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
 

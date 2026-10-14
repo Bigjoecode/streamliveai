@@ -1,3 +1,4 @@
+<?php require __DIR__ . '/inc/public.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,7 +7,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="uKDa2mNsXgNrAjWHvf8CXCvak3qQM6vhPXSCiODL">
     <title>StreamLive AI — AI media studio</title>
 
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -423,46 +423,7 @@
             <a href="pricing" class="text-sm text-signal hover:underline">Full pricing →</a>
         </div>
         <div class="mt-10 grid gap-6 md:grid-cols-3">
-                            <div class="relative rounded-2xl border border-border p-7 glass">
-        <p class="font-mono text-xs text-signal">500 credits</p>
-    <p class="mt-2 font-display text-2xl">Starter</p>
-    <p class="mt-4 font-display text-3xl">$12</p>
-    <div class="mt-5 border-t border-border/70 pt-5">
-        <ul class="space-y-2 text-sm text-muted">
-                            <li>All 5 tools</li>
-                            <li>Consent-logged jobs</li>
-                            <li>Email support</li>
-                    </ul>
-    </div>
-    <a href="register" class="mt-6 block rounded-md border border-border text-paper hover:border-signal/50 py-2.5 text-center text-sm font-medium">Get started</a>
-</div>
-                            <div class="relative rounded-2xl border border-signal/50 p-7 bg-signal/[0.04]">
-            <span class="absolute -top-3 left-6 rounded-full bg-signal px-3 py-1 text-[10.5px] font-semibold text-ink">Most popular</span>
-        <p class="font-mono text-xs text-signal">1,000 credits</p>
-    <p class="mt-2 font-display text-2xl">Creator</p>
-    <p class="mt-4 font-display text-3xl">$20</p>
-    <div class="mt-5 border-t border-border/70 pt-5">
-        <ul class="space-y-2 text-sm text-muted">
-                            <li>All 5 tools</li>
-                            <li>Priority queue</li>
-                            <li>Priority support</li>
-                    </ul>
-    </div>
-    <a href="register" class="mt-6 block rounded-md bg-signal text-ink hover:brightness-95 py-2.5 text-center text-sm font-medium">Get started</a>
-</div>
-                            <div class="relative rounded-2xl border border-border p-7 glass">
-        <p class="font-mono text-xs text-signal">2,000 credits</p>
-    <p class="mt-2 font-display text-2xl">Studio</p>
-    <p class="mt-4 font-display text-3xl">$38</p>
-    <div class="mt-5 border-t border-border/70 pt-5">
-        <ul class="space-y-2 text-sm text-muted">
-                            <li>All 5 tools</li>
-                            <li>Team seats</li>
-                            <li>Dedicated support</li>
-                    </ul>
-    </div>
-    <a href="register" class="mt-6 block rounded-md border border-border text-paper hover:border-signal/50 py-2.5 text-center text-sm font-medium">Get started</a>
-</div>
+        <?php sleek_public_pack_cards(['starter', 'creator', 'studio']); ?>
                     </div>
     </div>
 </section>
@@ -525,52 +486,7 @@
     </div>
 </section>
     </main>
-    <footer class="relative border-t border-border px-6 py-14 md:px-12">
-    <div class="mx-auto grid max-w-6xl gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-        <div>
-            <div class="flex items-center gap-2">
-                <span class="h-2.5 w-2.5 rounded-full bg-signal tally-dot"></span>
-                <span class="font-display text-lg tracking-tight">StreamLive AI</span>
-            </div>
-            <p class="mt-3 max-w-xs text-sm text-muted">
-                One control room for powerful AI tools - build for creation, transformation, and real-time experiences.
-            </p>
-        </div>
-
-        <div>
-            <p class="font-mono text-xs uppercase tracking-wide text-muted">Product</p>
-            <ul class="mt-3 space-y-2 text-sm text-muted">
-                <li><a href="features" class="hover:text-paper">Features</a></li>
-                <li><a href="how-it-works" class="hover:text-paper">How It Works</a></li>
-                <li><a href="pricing" class="hover:text-paper">Pricing</a></li>
-            </ul>
-        </div>
-
-        <div>
-            <p class="font-mono text-xs uppercase tracking-wide text-muted">Company</p>
-            <ul class="mt-3 space-y-2 text-sm text-muted">
-                <li><a href="about" class="hover:text-paper">About Us</a></li>
-                <li><a href="contact" class="hover:text-paper">Contact</a></li>
-                <li><a href="register" class="hover:text-paper">Create account</a></li>
-                <li><a href="login" class="hover:text-paper">Log in</a></li>
-            </ul>
-        </div>
-
-        <div>
-            <p class="font-mono text-xs uppercase tracking-wide text-muted">Trust</p>
-            <ul class="mt-3 space-y-2 text-sm text-muted">
-                <li>Consent-logged jobs</li>
-                <li>No auto-renewal billing</li>
-                <li><a href="terms" class="hover:text-paper">Terms of Service</a></li>
-                <li><a href="privacy" class="hover:text-paper">Privacy Policy</a></li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="mx-auto mt-12 max-w-6xl border-t border-border pt-6 text-sm text-muted">
-        © 2026 StreamLive AI. Built to make AI simpler, faster, and more accessible.
-    </div>
-</footer>
+    <?php sleek_public_footer(); ?>
     </div>
     <script>
 (function () {

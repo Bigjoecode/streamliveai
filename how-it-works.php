@@ -1,13 +1,13 @@
+<?php require __DIR__ . '/inc/public.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 
-<!-- Mirrored from sleekai.com.ng/terms by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:05 GMT -->
+<!-- Mirrored from sleekai.com.ng/how-it-works by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:04 GMT -->
 <!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="uKDa2mNsXgNrAjWHvf8CXCvak3qQM6vhPXSCiODL">
-    <title>Terms of Service — StreamLive AI</title>
+    <title>How It Works — StreamLive AI</title>
 
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -166,7 +166,7 @@
                     Features
                 </a>
                             <a href="how-it-works"
-                   class="transition hover:text-paper ">
+                   class="transition hover:text-paper text-paper">
                     How It Works
                 </a>
                             <a href="pricing"
@@ -195,7 +195,7 @@
                     <a href="features" class="whitespace-nowrap ">
                 Features
             </a>
-                    <a href="how-it-works" class="whitespace-nowrap ">
+                    <a href="how-it-works" class="whitespace-nowrap text-signal">
                 How It Works
             </a>
                     <a href="pricing" class="whitespace-nowrap ">
@@ -207,181 +207,80 @@
             </nav>
 </header>
     <main>
-        <div class="mx-auto max-w-3xl px-6 py-16 md:px-12">
-    <p class="font-mono text-xs uppercase tracking-wide text-signal">Legal</p>
-    <h1 class="mt-3 font-display text-4xl">Terms of Service</h1>
-    <p class="mt-2 text-sm text-muted">Last updated: September 19, 2026</p>
-
-    <div class="prose-legal mt-10 space-y-8 text-muted">
-        <section>
-            <h2 class="font-display text-xl text-paper">1. Who we are</h2>
-            <p class="mt-2 leading-relaxed">
-                StreamLive AI ("we", "us", "our") operates the StreamLive AI platform at sleekai.com.ng, providing AI-based
-                media tools including face swap, voice cloning, image-to-video, AI image editing, text-to-speech,
-                voice isolation, and voice changing ("the Services"). By creating an account or using the
-                Services, you agree to these Terms.
-            </p>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">2. Eligibility</h2>
-            <p class="mt-2 leading-relaxed">
-                You must be at least 18 years old to use StreamLive AI. The Services involve recreating a person's
-                face or voice, and we don't offer a version of this product for minors. By registering, you
-                confirm you meet this age requirement.
-            </p>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">3. Consent and acceptable use</h2>
-            <p class="mt-2 leading-relaxed">You agree that you will only use a face or voice in the Services if:</p>
-            <ul class="mt-2 list-disc space-y-1 pl-5">
-                <li>it is your own face or voice, or</li>
-                <li>you have the explicit, informed consent of the person it belongs to.</li>
-            </ul>
-            <p class="mt-3 leading-relaxed">You agree not to use StreamLive AI to:</p>
-            <ul class="mt-2 list-disc space-y-1 pl-5">
-                <li>impersonate a real person without their knowledge or consent, including on live calls or streams;</li>
-                <li>create sexual, intimate, or degrading content of any real person without their explicit consent;</li>
-                <li>create content involving minors in any face-swapped, voice-cloned, or otherwise identity-altered context;</li>
-                <li>harass, defame, defraud, or deceive any person or organization;</li>
-                <li>violate any applicable law, including impersonation, fraud, or election-related misinformation laws.</li>
-            </ul>
-            <p class="mt-3 leading-relaxed">
-                Jobs using a real face or voice require an explicit consent confirmation before they run. We
-                operate a moderation queue and reserve the right to review, remove, or refuse to deliver any
-                output, and to suspend or terminate accounts, at our discretion, where we believe these Terms
-                have been violated.
-            </p>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">4. Credits and payment</h2>
-            <p class="mt-2 leading-relaxed">
-                Access to the Services is billed using credits, purchased in packs with no subscription and no
-                expiry date. Livestream is metered per second rather than a flat rate. Payments are
-                processed by Flutterwave (cards) and NOWPayments (cryptocurrency). Prices are in US dollars
-                (USD); if your card is in another currency, your bank's exchange rate and fees apply;
-                we do not store your card details ourselves. Crypto payments are credited once the
-                network confirms them, and must be sent in full — an underpaid crypto payment is not
-                credited automatically; contact support with your payment reference. Credits
-                already spent on a completed job are non-refundable. If a job fails after credits are debited,
-                those credits are automatically returned to your balance.
-            </p>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">5. Referrals</h2>
-            <p class="mt-2 leading-relaxed">
-                If you refer another user who purchases a credit pack, you may receive a bonus credit percentage
-                of their purchase, as shown in your dashboard. We reserve the right to adjust, suspend, or deny
-                referral bonuses we reasonably believe involve abuse, self-referral through multiple accounts, or
-                fraud.
-            </p>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">6. Third-party processing</h2>
-            <p class="mt-2 leading-relaxed">
-                Some Services are powered by third-party AI providers (currently including ElevenLabs for voice
-                tools and Decart for livestream face swap). When you use those tools, the relevant input (e.g. a
-                voice sample or reference photo) is sent to that provider to generate your result, subject to
-                their own terms and processing practices in addition to ours.
-            </p>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">7. Ownership of your content</h2>
-            <p class="mt-2 leading-relaxed">
-                You retain ownership of what you upload and of the outputs you generate, subject to you having
-                had the right to use the underlying face, voice, or image in the first place. You grant us a
-                limited license to process your input solely to provide the Services to you.
-            </p>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">8. Disclaimers and limitation of liability</h2>
-            <p class="mt-2 leading-relaxed">
-                The Services are provided "as is." We do not guarantee that outputs will be error-free, available
-                at all times, or fit for any particular purpose. To the maximum extent permitted by law, StreamLive AI
-                is not liable for indirect, incidental, or consequential damages arising from your use of the
-                Services, including misuse of generated content by you or any third party.
-            </p>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">9. Changes to these Terms</h2>
-            <p class="mt-2 leading-relaxed">
-                We may update these Terms from time to time. Continued use of the Services after an update
-                constitutes acceptance of the revised Terms.
-            </p>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">10. Governing law</h2>
-            <p class="mt-2 leading-relaxed">
-                These Terms are governed by the laws of the Federal Republic of Nigeria, without regard to
-                conflict-of-law principles.
-            </p>
-        </section>
-
-        <section>
-            <h2 class="font-display text-xl text-paper">11. Contact</h2>
-            <p class="mt-2 leading-relaxed">
-                Questions about these Terms can be sent to <a href="cdn-cgi/l/email-protection.html#d7bfb2bbbbb897a4bbb2b2bcb6bef9b4b8baf9b9b0" class="text-signal hover:underline"><span class="__cf_email__" data-cfemail="98f0fdf4f4f7d8ebf4fdfdf3f9f1b6fbf7f5b6f6ff">[email&#160;protected]</span></a>.
-            </p>
-        </section>
+        
+<section class="relative px-6 pb-4 pt-16 md:px-12 md:pt-24">
+    <div class="grid-overlay absolute inset-x-0 top-0 h-[420px]" aria-hidden="true"></div>
+    <div class="relative mx-auto max-w-3xl text-center">
+        <p class="font-mono text-xs uppercase tracking-wide text-signal">How it works</p>
+        <h1 class="gradient-text mt-4 font-display text-5xl leading-[1.08] tracking-tight md:text-6xl">
+            From sign-up to output
+        </h1>
+        <p class="mx-auto mt-5 max-w-lg text-muted">
+            Four steps, most of them under a minute. Here's the whole path a job takes.
+        </p>
     </div>
-</div>
+</section>
+
+<section class="relative px-6 py-16 md:px-12">
+    <div class="mx-auto max-w-3xl">
+        
+        <div class="relative">
+            <div class="absolute left-[19px] top-2 bottom-2 w-px bg-gradient-to-b from-signal/60 via-border to-transparent md:left-[23px]" aria-hidden="true"></div>
+
+            <div class="space-y-10">
+                                    <div class="reveal relative flex gap-6">
+                        <div class="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-signal font-mono text-sm font-medium text-ink shadow-[0_0_24px_rgba(242,183,5,0.4)] md:h-12 md:w-12">
+                            1
+                        </div>
+                        <div class="glass glow-card flex-1 rounded-lg p-6">
+                            <h3 class="font-display text-xl">Create your account</h3>
+                            <p class="mt-2 text-muted">Sign up for StreamLive AI in just a few moments. Enter your details, create your account and get instant access to the platform.</p>
+                        </div>
+                    </div>
+                                    <div class="reveal relative flex gap-6">
+                        <div class="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-signal font-mono text-sm font-medium text-ink shadow-[0_0_24px_rgba(242,183,5,0.4)] md:h-12 md:w-12">
+                            2
+                        </div>
+                        <div class="glass glow-card flex-1 rounded-lg p-6">
+                            <h3 class="font-display text-xl">Buy a credit pack (optional, any time)</h3>
+                            <p class="mt-2 text-muted">Pick a pack, pay by card or crypto (prices in US dollars), and your balance updates as soon as the payment confirms.</p>
+                        </div>
+                    </div>
+                                    <div class="reveal relative flex gap-6">
+                        <div class="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-signal font-mono text-sm font-medium text-ink shadow-[0_0_24px_rgba(242,183,5,0.4)] md:h-12 md:w-12">
+                            3
+                        </div>
+                        <div class="glass glow-card flex-1 rounded-lg p-6">
+                            <h3 class="font-display text-xl">Pick a tool and upload your input</h3>
+                            <p class="mt-2 text-muted">Face swap, voice clone, image-to-video, or image edit — each has its own simple form for the photo, audio, or text it needs.</p>
+                        </div>
+                    </div>
+                                    <div class="reveal relative flex gap-6">
+                        <div class="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-signal font-mono text-sm font-medium text-ink shadow-[0_0_24px_rgba(242,183,5,0.4)] md:h-12 md:w-12">
+                            4
+                        </div>
+                        <div class="glass glow-card flex-1 rounded-lg p-6">
+                            <h3 class="font-display text-xl">The job runs and credits are debited</h3>
+                            <p class="mt-2 text-muted">One-shot tools debit a flat cost up front; livestream sessions are metered per second and debited when you end the session.</p>
+                        </div>
+                    </div>
+                            </div>
+        </div>
+    </div>
+</section>
+
+<section class="relative border-t border-border px-6 py-20 text-center md:px-12">
+    <h2 class="font-display text-3xl md:text-4xl">That's the whole loop</h2>
+    <p class="mx-auto mt-3 max-w-md text-muted">No hidden steps, no subscription trap — just credits in, output out, with a record of both.</p>
+    <div class="mt-8 flex justify-center gap-4">
+        <a href="register" class="btn-glow rounded-sm bg-signal px-7 py-3 font-medium text-ink hover:brightness-95">Start free</a>
+        <a href="features" class="rounded-sm border border-border px-7 py-3 font-medium text-paper transition hover:border-signal/50">Explore features</a>
+    </div>
+</section>
     </main>
-    <footer class="relative border-t border-border px-6 py-14 md:px-12">
-    <div class="mx-auto grid max-w-6xl gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-        <div>
-            <div class="flex items-center gap-2">
-                <span class="h-2.5 w-2.5 rounded-full bg-signal tally-dot"></span>
-                <span class="font-display text-lg tracking-tight">StreamLive AI</span>
-            </div>
-            <p class="mt-3 max-w-xs text-sm text-muted">
-                One control room for powerful AI tools - build for creation, transformation, and real-time experiences.
-            </p>
-        </div>
-
-        <div>
-            <p class="font-mono text-xs uppercase tracking-wide text-muted">Product</p>
-            <ul class="mt-3 space-y-2 text-sm text-muted">
-                <li><a href="features" class="hover:text-paper">Features</a></li>
-                <li><a href="how-it-works" class="hover:text-paper">How It Works</a></li>
-                <li><a href="pricing" class="hover:text-paper">Pricing</a></li>
-            </ul>
-        </div>
-
-        <div>
-            <p class="font-mono text-xs uppercase tracking-wide text-muted">Company</p>
-            <ul class="mt-3 space-y-2 text-sm text-muted">
-                <li><a href="about" class="hover:text-paper">About Us</a></li>
-                <li><a href="contact" class="hover:text-paper">Contact</a></li>
-                <li><a href="register" class="hover:text-paper">Create account</a></li>
-                <li><a href="login" class="hover:text-paper">Log in</a></li>
-            </ul>
-        </div>
-
-        <div>
-            <p class="font-mono text-xs uppercase tracking-wide text-muted">Trust</p>
-            <ul class="mt-3 space-y-2 text-sm text-muted">
-                <li>Consent-logged jobs</li>
-                <li>No auto-renewal billing</li>
-                <li><a href="terms" class="hover:text-paper">Terms of Service</a></li>
-                <li><a href="privacy" class="hover:text-paper">Privacy Policy</a></li>
-            </ul>
-        </div>
+    <?php sleek_public_footer(); ?>
     </div>
-
-    <div class="mx-auto mt-12 max-w-6xl border-t border-border pt-6 text-sm text-muted">
-        © 2026 StreamLive AI. Built to make AI simpler, faster, and more accessible.
-    </div>
-</footer>
-    </div>
-        <script data-cfasync="false" src="cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        <script>
         // Lightweight reveal-on-scroll for elements marked .reveal — degrades
         // gracefully (everything's just visible) if IntersectionObserver isn't available.
         if ('IntersectionObserver' in window) {
@@ -403,5 +302,5 @@
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"97ad44cc531f410e9330a892a6c3f2cf","r":1,"spa":2}' crossorigin="anonymous"></script>
 </body>
 
-<!-- Mirrored from sleekai.com.ng/terms by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:06 GMT -->
+<!-- Mirrored from sleekai.com.ng/how-it-works by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 19 Sep 2026 16:15:04 GMT -->
 </html>

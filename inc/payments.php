@@ -64,7 +64,7 @@ function sleek_payment_create(array $user, string $packKey, string $provider): a
     if ($pack === null) throw new InvalidArgumentException('Unknown credit pack.');
 
     $reference = 'SLK-' . strtoupper(bin2hex(random_bytes(10)));
-    $kobo      = $pack['price'] * 100;      // minor units: cents
+    $kobo      = sleek_pack_cents($pack);      // minor units: cents
     $currency  = sleek_catalog_currency();
 
     sleek_db()->prepare('INSERT INTO payments (user_id, provider, reference, pack_key, credits, amount_kobo, currency, status, created_at)

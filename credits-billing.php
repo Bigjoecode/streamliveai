@@ -43,7 +43,7 @@ $flashStyle = [
                 <?php endif; ?>
                 <p class="font-mono text-[13px] text-signal"><?= number_format($pack['credits']) ?> credits</p>
                 <h2 class="mt-3 font-display text-[22px] font-semibold text-paper"><?= e($pack['name']) ?></h2>
-                <p class="mt-3 font-display text-[28px] font-semibold leading-none text-paper"><?= sleek_money($pack['price'] * 100, sleek_catalog_currency()) ?></p>
+                <p class="mt-3 font-display text-[28px] font-semibold leading-none text-paper"><?= sleek_money(sleek_pack_cents($pack), sleek_catalog_currency()) ?></p>
                 <form method="POST" action="buy" data-buy class="mt-6 space-y-2.5">
                     <?= csrf_field() ?>
                     <input type="hidden" name="pack" value="<?= e($key) ?>">

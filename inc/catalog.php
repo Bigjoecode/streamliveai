@@ -14,19 +14,55 @@ function sleek_catalog_currency(): string
 }
 
 /**
- * Credit packs, keyed by the id the buy form posts. Prices in whole US dollars.
- * The public index.html and pricing.html show these too — update them together.
+ * The packs as first shipped. The super admin edits them at /admin → Pricing;
+ * what they save (the `packs` setting) is laid over these. The keys are fixed —
+ * they're what the buy form posts and what old payments point at.
+ */
+function sleek_pack_defaults(): array
+{
+    return [
+        'starter'  => ['credits' =>    500, 'name' => 'Starter',  'price' =>  12, 'badge' => '', 'features' => ['All 5 tools', 'Consent-logged jobs', 'Email support']],
+        'creator'  => ['credits' =>   1000, 'name' => 'Creator',  'price' =>  20, 'badge' => 'Most popular', 'features' => ['All 5 tools', 'Priority queue', 'Priority support']],
+        'studio'   => ['credits' =>   2000, 'name' => 'Studio',   'price' =>  38, 'badge' => '', 'features' => ['All 5 tools', 'Team seats', 'Dedicated support']],
+        'premium'  => ['credits' =>   4000, 'name' => 'Premium',  'price' =>  75, 'badge' => '', 'features' => ['All 5 tools', 'Team seats', 'Priority support']],
+        'pro'      => ['credits' =>   6000, 'name' => 'Pro',      'price' => 110, 'badge' => '', 'features' => ['All 5 tools', 'Team seats', 'Dedicated support']],
+        'ultimate' => ['credits' =>  10000, 'name' => 'Ultimate', 'price' => 185, 'badge' => '', 'features' => ['All 5 tools', 'Unlimited team seats', 'Dedicated support']],
+    ];
+}
+
+/**
+ * Credit packs, keyed by the id the buy form posts. 'price' is US dollars and may
+ * have cents (12.5); charge it with sleek_pack_cents(). Empty badges are dropped.
  */
 function sleek_packs(): array
 {
-    return [
-        'starter'  => ['credits' =>    500, 'name' => 'Starter',  'price' =>  12],
-        'creator'  => ['credits' =>   1000, 'name' => 'Creator',  'price' =>  20, 'badge' => 'Most popular'],
-        'studio'   => ['credits' =>   2000, 'name' => 'Studio',   'price' =>  38],
-        'premium'  => ['credits' =>   4000, 'name' => 'Premium',  'price' =>  75],
-        'pro'      => ['credits' =>   6000, 'name' => 'Pro',      'price' => 110],
-        'ultimate' => ['credits' =>  10000, 'name' => 'Ultimate', 'price' => 185],
-    ];
+    require_once __DIR__ . '/settings.php';
+    $saved = sleek_setting('packs', []);
+    $packs = [];
+    foreach (sleek_pack_defaults() as $key => $pack) {
+        $over = is_array($saved[$key] ?? null) ? $saved[$key] : [];
+        $pack = array_replace($pack, array_intersect_key($over, $pack));
+        if (($pack['badge'] ?? '') === '') unset($pack['badge']);
+        $packs[$key] = $pack;
+    }
+    return $packs;
+}
+
+/**
+ * Money in minor units (cents, kobo), formatted the way the billing page shows it:
+ * $12, $12.50, ₦18,000. Returns HTML-safe text.
+ */
+function sleek_money(int $minor, string $currency): string
+{
+    $symbol = ['USD' => '$', 'NGN' => '&#8358;'][strtoupper($currency)] ?? e(strtoupper($currency)) . ' ';
+    $amount = $minor / 100;
+    return $symbol . number_format($amount, $minor % 100 === 0 ? 0 : 2);
+}
+
+/** A pack's price in cents — the only form money is charged or compared in. */
+function sleek_pack_cents(array $pack): int
+{
+    return (int) round(((float) $pack['price']) * 100);
 }
 
 function sleek_pack(string $key): ?array
