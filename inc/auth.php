@@ -13,7 +13,7 @@ declare(strict_types=1);
 const SLEEK_DUMMY_HASH = '$2y$10$VkB6H1TP3B1/roG5TKqCU.XYXmXs2PqkmOJHrLO/5jNAoa2dlc4Ai';
 
 /** Pages the guard may send someone back to after login — nothing user-supplied. */
-const SLEEK_INTENDED_PAGES = ['dashboard', 'job-history', 'credits-billing', 'referrals', 'voice-isolator', 'voice-cloning', 'livestream', 'image-to-video', 'ai-image-edit'];
+const SLEEK_INTENDED_PAGES = ['admin', 'admin-setup', 'dashboard', 'job-history', 'credits-billing', 'referrals', 'voice-isolator', 'voice-cloning', 'livestream', 'image-to-video', 'ai-image-edit'];
 
 function sleek_normalize_email(string $email): string
 {
@@ -346,6 +346,12 @@ function sleek_register(string $name, string $email, string $password, bool $ter
 
             $userId = (int) $db->lastInsertId();
             sleek_login_user($userId);
+
+            // Welcome email, sent once the dashboard is already on its way to them.
+            sleek_after_response(function () use ($userId): void {
+                require_once __DIR__ . '/emails.php';
+                sleek_send_welcome_email($userId);
+            });
             return ['ok' => true, 'errors' => []];
         } catch (PDOException $e) {
             if (!sleek_is_duplicate($e)) throw $e;
@@ -400,17 +406,27 @@ function sleek_request_password_reset(string $email): void
     $stmt->execute([$user['id']]);
     if ((int) $stmt->fetchColumn() > time() - $auth['reset_cooldown_seconds']) return;
 
-    // Only the hash is stored, so a leaked database can't be turned into reset links.
-    $token = bin2hex(random_bytes(32));
-
-    $db->prepare('DELETE FROM password_resets WHERE user_id = ?')->execute([$user['id']]);   // newest link wins
-    $db->prepare('INSERT INTO password_resets (user_id, token_hash, created_at, expires_at) VALUES (?, ?, ?, ?)')
-       ->execute([$user['id'], hash('sha256', $token), time(), time() + $auth['reset_ttl_seconds']]);
-
-    $link = sleek_url('reset-password?token=' . $token);
+    $link = sleek_issue_reset_link((int) $user['id'], (int) $auth['reset_ttl_seconds']);
     [$html, $text] = sleek_reset_email($user['name'], $link, intdiv($auth['reset_ttl_seconds'], 60));
 
     sleek_send_mail($user['email'], $user['name'], 'Reset your StreamLive AI password', $html, $text);
+}
+
+/**
+ * Make a fresh one-time password link for an account, valid $ttl seconds, and
+ * return it. Any older link for the account stops working (newest wins). Only the
+ * hash is stored, so a leaked database can't be turned into reset links.
+ */
+function sleek_issue_reset_link(int $userId, int $ttl): string
+{
+    $db    = sleek_db();
+    $token = bin2hex(random_bytes(32));
+
+    $db->prepare('DELETE FROM password_resets WHERE user_id = ?')->execute([$userId]);
+    $db->prepare('INSERT INTO password_resets (user_id, token_hash, created_at, expires_at) VALUES (?, ?, ?, ?)')
+       ->execute([$userId, hash('sha256', $token), time(), time() + $ttl]);
+
+    return sleek_url('reset-password?token=' . $token);
 }
 
 /** The account a reset token belongs to, if the token is live. */

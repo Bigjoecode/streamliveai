@@ -79,6 +79,27 @@ function sleek_redirect(string $to): never
     exit;
 }
 
+/**
+ * Run $fn after the response has gone to the browser — for slow side effects like
+ * sending email, so the visitor isn't kept waiting on the SMTP server. The session
+ * is saved first, so the next page load can't see stale login state. Falls back to
+ * running at the end of the request where the server can't detach (CLI, mod_php).
+ */
+function sleek_after_response(callable $fn): void
+{
+    register_shutdown_function(function () use ($fn): void {
+        if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+        if (function_exists('litespeed_finish_request')) litespeed_finish_request();
+        elseif (function_exists('fastcgi_finish_request')) fastcgi_finish_request();
+        ignore_user_abort(true);
+        try {
+            $fn();
+        } catch (Throwable $e) {
+            error_log('SleekAI after-response task failed: ' . $e->getMessage());
+        }
+    });
+}
+
 function sleek_is_post(): bool
 {
     return ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST';

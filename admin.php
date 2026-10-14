@@ -3,6 +3,8 @@ require __DIR__ . '/inc/bootstrap.php';
 require __DIR__ . '/inc/catalog.php';
 require __DIR__ . '/inc/contact.php';
 require_once __DIR__ . '/inc/mailer.php';
+require __DIR__ . '/inc/admin-users.php';
+require __DIR__ . '/inc/admin-layout.php';
 $admin = require_super_admin();
 
 /** storage/provider-secrets.json — private values layered over the config files. */
@@ -43,11 +45,27 @@ function sleek_admin_key_fields(): array
 }
 $db = sleek_db();
 $notice = null;
+$noticeBad = false;
+$createErrors = [];
+$createOld = ['name' => '', 'email' => '', 'role' => 'user', 'credits' => '0', 'welcome' => true];
 
 if (sleek_is_post()) {
     csrf_verify();
     $action = is_string($_POST['action'] ?? null) ? $_POST['action'] : '';
-    if ($action === 'promote_initial') {
+    if ($action === 'create_user') {
+        $str = fn(string $k) => is_string($_POST[$k] ?? null) ? $_POST[$k] : '';
+        $createOld = ['name' => $str('name'), 'email' => $str('email'), 'role' => $str('role'), 'credits' => trim($str('credits')), 'welcome' => isset($_POST['welcome'])];
+        $credits = $createOld['credits'] === '' ? 0 : filter_var($createOld['credits'], FILTER_VALIDATE_INT);
+        if ($credits === false) {
+            $createErrors = ['credits' => 'Starting credits must be a whole number.'];
+        } else {
+            $res = sleek_admin_create_user($createOld['name'], $createOld['email'], $str('password'), $createOld['role'], (int) $credits, $createOld['welcome']);
+            if (!$res['errors']) sleek_redirect('admin-user?id=' . $res['id'] . '&done=created');
+            $createErrors = $res['errors'];
+        }
+        $notice = 'Account not created — check the form below.';
+        $noticeBad = true;
+    } elseif ($action === 'promote_initial') {
         $email = is_string($_POST['email'] ?? null) ? $_POST['email'] : '';
         $token = is_string($_POST['setup_token'] ?? null) ? $_POST['setup_token'] : '';
         $notice = sleek_claim_initial_super_admin($email, $token) ? 'Initial super admin verified and assigned.' : 'Email and setup token did not match, or the account does not exist.';
@@ -184,6 +202,14 @@ if (sleek_is_post()) {
     }
 }
 
+if (sleek_is_post() && $notice !== null && !$noticeBad) {
+    $noticeBad = !preg_match('/^(Test email sent|User role updated|Initial super admin verified)/', $notice);
+}
+if (($_GET['done'] ?? '') === 'deleted') $notice = 'Account deleted.';
+if ($notice === null && ($flash = sleek_flash_take())) {
+    $notice = $flash['message'];
+    $noticeBad = $flash['type'] === 'error';
+}
 if (($_GET['keys'] ?? '') === 'saved') $notice = 'Provider settings saved. Existing values stay hidden.';
 if (($_GET['saved'] ?? '') === 'packs') $notice = 'Prices saved. The pricing page, home page and billing page show them now.';
 if (($_GET['saved'] ?? '') === 'site') $notice = 'Community and notification settings saved.';
@@ -198,7 +224,9 @@ $notifyEmail = (string) sleek_setting('contact_notify_email', '');
 $messages = $db->query('SELECT * FROM contact_messages ORDER BY created_at DESC, id DESC LIMIT 100')->fetchAll();
 $unread = sleek_contact_unread_count();
 
-$users = $db->query('SELECT id,name,email,credits,role,created_at FROM users ORDER BY id DESC LIMIT 200')->fetchAll();
+$q = is_string($_GET['q'] ?? null) ? mb_substr(trim($_GET['q']), 0, 100) : '';
+$list = sleek_admin_list_users($q, (int) ($_GET['p'] ?? 1));
+$pageUrl = fn(int $n) => 'admin?' . http_build_query(array_filter(['q' => $q, 'p' => $n > 1 ? $n : null])) . '#accounts';
 $stats = [
     'users' => (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn(),
     'admins' => (int) $db->query("SELECT COUNT(*) FROM users WHERE role IN ('admin','super_admin')")->fetchColumn(),
@@ -212,56 +240,155 @@ $providers = [
     'Flutterwave' => sleek_config('flutterwave')['secret_key'] !== '' && sleek_config('flutterwave')['webhook_hash'] !== '',
     'NOWPayments (crypto)' => sleek_config('nowpayments')['api_key'] !== '' && sleek_config('nowpayments')['ipn_secret'] !== '',
 ];
+
+admin_layout_open('System control', $admin, $notice, $noticeBad);
 ?>
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>System Admin — <?= e((string) sleek_config('brand_name')) ?></title><style>
-*{box-sizing:border-box}body{margin:0;background:#14171c;color:#f5f6f7;font:15px Inter,system-ui,sans-serif}main{max-width:1180px;margin:auto;padding:32px 20px}h1,h2{font-family:Georgia,serif}a{color:#f2b705}.top{display:flex;justify-content:space-between;align-items:center;gap:16px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:24px 0}.card{background:#1c2027;border:1px solid #303640;border-radius:12px;padding:18px}.number{font-size:28px;font-weight:700}.muted{color:#a8aeb8}.notice{padding:12px;background:#263327;border-radius:8px;margin:16px 0}form{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}input,select,button{background:#14171c;color:#f5f6f7;border:1px solid #454c57;border-radius:6px;padding:9px}button{cursor:pointer;background:#f2b705;color:#14171c;font-weight:600}table{border-collapse:collapse;width:100%;min-width:720px}th,td{text-align:left;padding:11px;border-bottom:1px solid #303640}.overflow{overflow:auto}.setup{margin:20px 0}small{color:#a8aeb8}@media(max-width:600px){main{padding:20px 12px}.top{align-items:flex-start}}
-.pack{display:grid;gap:8px}.pack label{display:grid;gap:4px;font-size:13px;color:#a8aeb8}.pack input,.pack textarea{width:100%}textarea{background:#14171c;color:#f5f6f7;border:1px solid #454c57;border-radius:6px;padding:9px;font:inherit;resize:vertical}.packs{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin:16px 0}.wide{display:grid;gap:12px;max-width:560px}.wide label{display:grid;gap:4px}.msg{border-top:1px solid #303640;padding:14px 0}.msg.unread{border-left:3px solid #f2b705;padding-left:12px}.msg p{white-space:pre-wrap;margin:8px 0;overflow-wrap:anywhere}.msg form{display:inline-flex;margin:0 6px 0 0}.ghost{background:transparent;color:#f5f6f7;border:1px solid #454c57}.pill{background:#f2b705;color:#14171c;border-radius:99px;padding:1px 8px;font-size:12px;font-weight:700;margin-left:6px;font-family:Inter,system-ui,sans-serif}
-</style></head><body><main>
-<div class="top"><div><p class="muted"><?= e((string) sleek_config('brand_name')) ?> / Administration</p><h1>System control</h1><p class="muted">Signed in as <?= e($admin['email']) ?> · Super admin</p></div><a href="dashboard">User dashboard</a></div>
-<?php if ($notice): ?><p class="notice" role="status"><?= e($notice) ?></p><?php endif; ?>
-<section class="grid"><?php foreach ($stats as $label => $value): ?><article class="card"><div class="muted"><?= e(ucfirst($label)) ?></div><div class="number"><?= number_format($value) ?></div></article><?php endforeach; ?></section>
-<?php if (!$mailReady): ?><p class="notice" role="alert" style="background:#3a2626">Email is not set up, so password-reset and notification emails are not being sent. Fill in <a href="#email">Email (SMTP)</a> below.</p><?php endif; ?>
-<section class="card" id="email" style="margin-top:20px"><h2>Email (SMTP)</h2><p class="muted">Used for password-reset links and contact notifications. On Namecheap: create a mailbox in cPanel → Email Accounts (e.g. no-reply@streamliveai.art), then use server <strong>mail.streamliveai.art</strong>, port <strong>465</strong>, SSL, and the full mailbox address and password. Status: <strong><?= $mailReady ? 'configured' : 'not set up' ?></strong>. Sends from <?= e(sleek_mail_from_address()) ?>.</p>
-<form method="post" class="wide" style="display:grid" autocomplete="off"><?= csrf_field() ?><input type="hidden" name="action" value="save_mail">
-<label>SMTP server<input required name="mail_host" placeholder="mail.streamliveai.art" value="<?= e($mailReady ? (string) $mailCfg['host'] : '') ?>"></label>
-<label>Port<input required type="number" min="1" max="65535" name="mail_port" value="<?= (int) ($mailReady ? $mailCfg['port'] : 465) ?>"></label>
-<label>Encryption<select name="mail_encryption"><?php foreach (['ssl' => 'SSL (port 465)', 'tls' => 'STARTTLS (port 587)', '' => 'None'] as $v => $l): ?><option value="<?= e($v) ?>"<?= ($mailReady ? $mailCfg['encryption'] : 'ssl') === $v ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
-<label>Username (usually the full mailbox address)<input name="mail_username" value="<?= e((string) $mailCfg['username']) ?>"></label>
-<label>Password<input type="password" name="mail_password" autocomplete="new-password" placeholder="<?= ($mailCfg['password'] ?? '') !== '' ? 'Leave blank to keep current password' : 'Mailbox password' ?>"><span><input type="checkbox" name="mail_password_clear" value="1"> Clear saved password</span></label>
-<label>Sender address (optional)<input type="email" name="mail_from_address" placeholder="<?= e(sleek_mail_from_address()) ?>" value="<?= e((string) $mailCfg['from_address']) ?>"><small>Use the mailbox above, or an address on the same domain — other domains get marked as spam.</small></label>
-<label>Sender name<input name="mail_from_name" maxlength="80" value="<?= e((string) $mailCfg['from_name']) ?>"></label>
-<div><button>Save email settings</button></div></form>
-<form method="post" style="margin-top:14px"><?= csrf_field() ?><input type="hidden" name="action" value="test_mail"><input type="email" required name="test_to" placeholder="Send a test to…" value="<?= e($admin['email']) ?>"><button class="ghost">Send test email</button></form>
-<?php if (($lastMailError = sleek_mail_last_error()) !== ''): ?><p class="muted" style="overflow-wrap:anywhere"><small>Last send failure: <?= e($lastMailError) ?></small></p><?php endif; ?>
+<section class="stats" aria-label="Totals">
+<?php foreach ($stats as $label => $value): ?>
+    <article class="card"><div class="muted"><?= e(ucfirst($label)) ?></div><div class="number"><?= number_format($value) ?></div></article>
+<?php endforeach; ?>
+</section>
+<?php if (!$mailReady): ?><p class="notice bad" role="alert">Email is not set up, so password-reset, welcome and notification emails are not being sent. Fill in <a href="#email">Email (SMTP)</a>.</p><?php endif; ?>
+
+<section class="card" id="accounts">
+    <h2>Accounts</h2>
+    <p class="muted"><?= number_format($list['total']) ?> account<?= $list['total'] === 1 ? '' : 's' ?><?= $q !== '' ? ' matching “' . e($q) . '”' : '' ?>. Open one to edit it, change credits, send a password link or delete it.</p>
+
+    <form method="get" action="admin#accounts" class="inline" role="search">
+        <input type="search" name="q" value="<?= e($q) ?>" placeholder="Search name or email" aria-label="Search accounts">
+        <button class="ghost">Search</button><?php if ($q !== ''): ?><a class="btn ghost" href="admin#accounts">Clear</a><?php endif; ?>
+    </form>
+
+    <details<?= $createErrors ? ' open' : '' ?> style="margin-top:12px">
+        <summary class="btn">+ Add account</summary>
+        <form method="post" class="form" autocomplete="off">
+            <?= csrf_field() ?><input type="hidden" name="action" value="create_user">
+            <?php if (isset($createErrors['form'])): ?><span class="err"><?= e($createErrors['form']) ?></span><?php endif; ?>
+            <div class="form-grid two">
+                <label><span class="l">Name</span><input required maxlength="100" name="name" value="<?= e($createOld['name']) ?>"><?= admin_err($createErrors, 'name') ?></label>
+                <label><span class="l">Email</span><input required type="email" maxlength="254" name="email" value="<?= e($createOld['email']) ?>"><?= admin_err($createErrors, 'email') ?></label>
+                <label><span class="l">Password (optional)</span><input type="password" name="password" minlength="8" maxlength="72" autocomplete="new-password" placeholder="Blank: they set their own via email"><?= admin_err($createErrors, 'password') ?></label>
+                <label><span class="l">Role</span><select name="role"><?php foreach (SLEEK_ADMIN_ROLES as $v => $l): ?><option value="<?= e($v) ?>"<?= $createOld['role'] === $v ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select><?= admin_err($createErrors, 'role') ?></label>
+                <label><span class="l">Starting credits</span><input type="number" min="0" step="1" name="credits" value="<?= e($createOld['credits']) ?>"><?= admin_err($createErrors, 'credits') ?></label>
+            </div>
+            <label class="check"><input type="checkbox" name="welcome" value="1"<?= $createOld['welcome'] ? ' checked' : '' ?>> Send the welcome email (includes a set-password link if you left the password blank)</label>
+            <div class="actions"><button>Create account</button></div>
+        </form>
+    </details>
+
+    <?php if (!$list['rows']): ?>
+        <p class="muted" style="margin-top:12px">No accounts found.</p>
+    <?php else: ?>
+    <div class="tablewrap">
+        <table class="stack">
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Credits</th><th>Joined</th><th></th></tr></thead>
+            <tbody>
+            <?php foreach ($list['rows'] as $u): ?>
+                <tr>
+                    <td data-label="Name"><a href="admin-user?id=<?= (int) $u['id'] ?>"><?= e($u['name']) ?></a></td>
+                    <td data-label="Email"><?= e($u['email']) ?></td>
+                    <td data-label="Role"><span class="role <?= e($u['role']) ?>"><?= e($u['role'] === 'super_admin' ? 'Super admin' : ucfirst($u['role'])) ?></span></td>
+                    <td data-label="Credits"><?= number_format((int) $u['credits']) ?></td>
+                    <td data-label="Joined"><?= e(date('Y-m-d', (int) $u['created_at'])) ?></td>
+                    <td class="full"><a class="btn ghost" href="admin-user?id=<?= (int) $u['id'] ?>" style="width:100%">Manage</a></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php if ($list['pages'] > 1): ?>
+        <nav class="pager" aria-label="Accounts pages">
+            <?php if ($list['page'] > 1): ?><a class="btn ghost" href="<?= e($pageUrl($list['page'] - 1)) ?>">← Newer</a><?php endif; ?>
+            <span class="muted">Page <?= $list['page'] ?> of <?= $list['pages'] ?></span>
+            <?php if ($list['page'] < $list['pages']): ?><a class="btn ghost" href="<?= e($pageUrl($list['page'] + 1)) ?>">Older →</a><?php endif; ?>
+        </nav>
+    <?php endif; ?>
+    <?php endif; ?>
 </section>
 
-<section class="card" id="pricing" style="margin-top:20px"><h2>Pricing</h2><p class="muted">Credit packs, priced in US dollars. Changes show at once on the pricing page, the home page (first three packs) and Credits &amp; billing. A payment already started keeps the price it was started at. Badge is optional (e.g. "Most popular"); a pack with a badge is highlighted.</p>
-<form method="post" style="display:block"><?= csrf_field() ?><input type="hidden" name="action" value="save_packs"><div class="packs">
-<?php foreach ($packs as $key => $p): ?><fieldset class="card pack" style="margin:0"><legend class="muted"><?= e($key) ?></legend>
-<label>Name<input required maxlength="40" name="packs[<?= e($key) ?>][name]" value="<?= e($p['name']) ?>"></label>
-<label>Credits<input required type="number" min="1" step="1" name="packs[<?= e($key) ?>][credits]" value="<?= (int) $p['credits'] ?>"></label>
-<label>Price (USD)<input required inputmode="decimal" pattern="\d{1,6}(\.\d{1,2})?" name="packs[<?= e($key) ?>][price]" value="<?= e(rtrim(rtrim(number_format((float) $p['price'], 2, '.', ''), '0'), '.')) ?>"></label>
-<label>Badge (optional)<input maxlength="30" name="packs[<?= e($key) ?>][badge]" value="<?= e($p['badge'] ?? '') ?>"></label>
-<label>Features, one per line<textarea rows="3" name="packs[<?= e($key) ?>][features]"><?= e(implode("\n", $p['features'])) ?></textarea></label>
-</fieldset><?php endforeach; ?></div><button>Save prices</button></form></section>
+<section class="card" id="messages">
+    <h2>Messages<?php if ($unread): ?><span class="pill"><?= $unread ?> new</span><?php endif; ?></h2>
+    <p class="muted">From the Contact page. Reply by clicking the sender's email. Latest 100 shown.</p>
+    <?php if (!$messages): ?><p class="muted">No messages yet.</p><?php endif; ?>
+    <?php foreach ($messages as $m): $isUnread = $m['read_at'] === null; ?>
+    <article class="msg<?= $isUnread ? ' unread' : '' ?>">
+        <strong><?= e($m['name']) ?></strong> · <a href="mailto:<?= e($m['email']) ?>?subject=<?= rawurlencode('Re: your message to ' . sleek_config('brand_name')) ?>"><?= e($m['email']) ?></a>
+        <small>· <?= e(date('Y-m-d H:i', (int) $m['created_at'])) ?><?php if ($m['user_id']): ?> · <a href="admin-user?id=<?= (int) $m['user_id'] ?>">account #<?= (int) $m['user_id'] ?></a><?php endif; ?></small>
+        <p><?= e($m['message']) ?></p>
+        <div class="actions">
+            <form method="post" class="inline"><?= csrf_field() ?><input type="hidden" name="message_id" value="<?= (int) $m['id'] ?>"><button class="ghost" name="action" value="<?= $isUnread ? 'message_read' : 'message_unread' ?>"><?= $isUnread ? 'Mark read' : 'Mark unread' ?></button></form>
+            <form method="post" class="inline" onsubmit="return confirm('Delete this message?')"><?= csrf_field() ?><input type="hidden" name="message_id" value="<?= (int) $m['id'] ?>"><button class="danger" name="action" value="message_delete">Delete</button></form>
+        </div>
+    </article>
+    <?php endforeach; ?>
+</section>
 
-<section class="card" id="site" style="margin-top:20px"><h2>Community &amp; notifications</h2>
-<form method="post" class="wide" style="display:grid"><?= csrf_field() ?><input type="hidden" name="action" value="save_site">
-<label>Telegram channel<input name="telegram_url" placeholder="https://t.me/yourchannel or @yourchannel" value="<?= e($telegramUrl) ?>"><small>Shown as "Join us on Telegram" in the footer of every public page, on the Contact page and in the dashboard sidebar. Leave empty to hide it.</small></label>
-<label>Email new contact messages to (optional)<input type="email" name="contact_notify_email" placeholder="you@example.com" value="<?= e($notifyEmail) ?>"><small>Messages are always kept in the inbox below; this also emails each one, using the site's mail settings.</small></label>
-<div><button>Save</button></div></form></section>
+<section class="card" id="pricing">
+    <h2>Pricing</h2>
+    <p class="muted">Credit packs, priced in US dollars. Changes show at once on the pricing page, the home page (first three packs) and Credits &amp; billing. A payment already started keeps its price. A pack with a badge (e.g. “Most popular”) is highlighted.</p>
+    <form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="save_packs">
+        <div class="packs">
+        <?php foreach ($packs as $key => $p): ?>
+            <fieldset class="pack"><legend><?= e($key) ?></legend>
+                <label><span class="l">Name</span><input required maxlength="40" name="packs[<?= e($key) ?>][name]" value="<?= e($p['name']) ?>"></label>
+                <div class="form-grid two">
+                    <label><span class="l">Credits</span><input required type="number" min="1" step="1" name="packs[<?= e($key) ?>][credits]" value="<?= (int) $p['credits'] ?>"></label>
+                    <label><span class="l">Price (USD)</span><input required inputmode="decimal" pattern="\d{1,6}(\.\d{1,2})?" name="packs[<?= e($key) ?>][price]" value="<?= e(rtrim(rtrim(number_format((float) $p['price'], 2, '.', ''), '0'), '.')) ?>"></label>
+                </div>
+                <label><span class="l">Badge (optional)</span><input maxlength="30" name="packs[<?= e($key) ?>][badge]" value="<?= e($p['badge'] ?? '') ?>"></label>
+                <label><span class="l">Features, one per line</span><textarea rows="3" name="packs[<?= e($key) ?>][features]"><?= e(implode("\n", $p['features'])) ?></textarea></label>
+            </fieldset>
+        <?php endforeach; ?>
+        </div>
+        <button>Save prices</button>
+    </form>
+</section>
 
-<section class="card" id="messages" style="margin-top:20px"><h2>Messages<?php if ($unread): ?><span class="pill"><?= $unread ?> new</span><?php endif; ?></h2><p class="muted">From the Contact page. Reply by clicking the sender's email. Latest 100 shown.</p>
-<?php if (!$messages): ?><p class="muted">No messages yet.</p><?php endif; ?>
-<?php foreach ($messages as $m): $isUnread = $m['read_at'] === null; ?><article class="msg<?= $isUnread ? ' unread' : '' ?>">
-<strong><?= e($m['name']) ?></strong> · <a href="mailto:<?= e($m['email']) ?>?subject=<?= rawurlencode('Re: your message to ' . sleek_config('brand_name')) ?>"><?= e($m['email']) ?></a> <small>· <?= e(date('Y-m-d H:i', (int) $m['created_at'])) ?><?= $m['user_id'] ? ' · account #' . (int) $m['user_id'] : '' ?></small>
-<p><?= e($m['message']) ?></p>
-<form method="post"><?= csrf_field() ?><input type="hidden" name="message_id" value="<?= (int) $m['id'] ?>"><button class="ghost" name="action" value="<?= $isUnread ? 'message_read' : 'message_unread' ?>"><?= $isUnread ? 'Mark read' : 'Mark unread' ?></button></form>
-<form method="post" onsubmit="return confirm('Delete this message?')"><?= csrf_field() ?><input type="hidden" name="message_id" value="<?= (int) $m['id'] ?>"><button class="ghost" name="action" value="message_delete">Delete</button></form>
-</article><?php endforeach; ?></section>
+<section class="card" id="site">
+    <h2>Community &amp; notifications</h2>
+    <form method="post" class="form"><?= csrf_field() ?><input type="hidden" name="action" value="save_site">
+        <label><span class="l">Telegram channel</span><input name="telegram_url" placeholder="https://t.me/yourchannel or @yourchannel" value="<?= e($telegramUrl) ?>"><small>Shown in the footer of every public page, on the Contact page, in the dashboard sidebar and in welcome emails. Until set, the dashboard button opens the Contact page.</small></label>
+        <label><span class="l">Email new contact messages to (optional)</span><input type="email" name="contact_notify_email" placeholder="you@example.com" value="<?= e($notifyEmail) ?>"><small>Messages are always kept in Messages above; this also emails each one.</small></label>
+        <div class="actions"><button>Save</button></div>
+    </form>
+</section>
 
-<section class="card"><h2>Provider connections</h2><p class="muted">Keys are stored privately on this server. Saved values are never shown here. Leave a field blank to keep its current value; use Clear to remove it.</p><div class="grid"><?php foreach ($providers as $name => $connected): ?><article class="card"><strong><?= e($name) ?></strong><p class="muted"><?= $connected ? 'Configured' : 'Keys missing' ?></p></article><?php endforeach; ?></div><form method="post" autocomplete="off"><?= csrf_field() ?><input type="hidden" name="action" value="save_provider_keys"><?php foreach (sleek_admin_key_fields() as $field => [$section, $keyName, $label]): $isSet = (sleek_config($section)[$keyName] ?? '') !== ''; ?><label class="card"><strong><?= e($label) ?></strong><input type="password" name="<?= e($field) ?>" autocomplete="new-password" placeholder="<?= $isSet ? 'Leave blank to keep current value' : 'Not set — paste it here' ?>"><span><input type="checkbox" name="clear_<?= e($field) ?>" value="1"> Clear saved value</span></label><?php endforeach; ?><button>Save provider keys</button></form></section>
-<section class="card setup"><h2>Initial super admin setup</h2><p class="muted">Use the exact owner email and setup token configured privately in inc/config.local.php. This can transfer the super admin role to the verified owner account.</p><form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="promote_initial"><input required type="email" name="email" placeholder="Configured owner email"><input required type="password" name="setup_token" placeholder="Private setup token"><button>Verify and assign</button></form></section>
-<section class="card"><h2>Accounts</h2><p class="muted">Showing latest <?= count($users) ?> of <?= number_format($stats['users']) ?> accounts. The super admin role cannot be changed from the table.</p><div class="overflow"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Credits</th><th>Joined</th><th>Change role</th></tr></thead><tbody>
-<?php foreach ($users as $user): ?><tr><td><?= e($user['name']) ?></td><td><?= e($user['email']) ?></td><td><?= e($user['role']) ?></td><td><?= number_format((int) $user['credits']) ?></td><td><?= e(date('Y-m-d', (int) $user['created_at'])) ?></td><td><?php if ($user['role'] !== 'super_admin'): ?><form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="set_role"><input type="hidden" name="user_id" value="<?= (int) $user['id'] ?>"><select name="role"><option value="user"<?= $user['role'] === 'user' ? ' selected' : '' ?>>User</option><option value="admin"<?= $user['role'] === 'admin' ? ' selected' : '' ?>>Admin</option></select><button>Save</button></form><?php else: ?><small>Protected</small><?php endif; ?></td></tr><?php endforeach; ?>
-</tbody></table></div></section></main></body></html>
+<section class="card" id="email">
+    <h2>Email (SMTP)</h2>
+    <p class="muted">Used for welcome emails, password-reset links and contact notifications. On Namecheap: create a mailbox in cPanel → Email Accounts, then use server <strong>mail.yourdomain</strong>, port <strong>465</strong>, SSL, and the full mailbox address and password. Status: <strong><?= $mailReady ? 'configured' : 'not set up' ?></strong>. Sends from <?= e(sleek_mail_from_address()) ?>.</p>
+    <form method="post" class="form" autocomplete="off"><?= csrf_field() ?><input type="hidden" name="action" value="save_mail">
+        <div class="form-grid three">
+            <label><span class="l">SMTP server</span><input required name="mail_host" placeholder="mail.streamliveai.art" value="<?= e($mailReady ? (string) $mailCfg['host'] : '') ?>"></label>
+            <label><span class="l">Port</span><input required type="number" min="1" max="65535" name="mail_port" value="<?= (int) ($mailReady ? $mailCfg['port'] : 465) ?>"></label>
+            <label><span class="l">Encryption</span><select name="mail_encryption"><?php foreach (['ssl' => 'SSL (port 465)', 'tls' => 'STARTTLS (port 587)', '' => 'None'] as $v => $l): ?><option value="<?= e($v) ?>"<?= ($mailReady ? $mailCfg['encryption'] : 'ssl') === $v ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
+        </div>
+        <div class="form-grid two">
+            <label><span class="l">Username (usually the full mailbox address)</span><input name="mail_username" value="<?= e((string) $mailCfg['username']) ?>"></label>
+            <label><span class="l">Password</span><input type="password" name="mail_password" autocomplete="new-password" placeholder="<?= ($mailCfg['password'] ?? '') !== '' ? 'Leave blank to keep current password' : 'Mailbox password' ?>"><span class="check"><input type="checkbox" name="mail_password_clear" value="1"> Clear saved password</span></label>
+            <label><span class="l">Sender address (optional)</span><input type="email" name="mail_from_address" placeholder="<?= e(sleek_mail_from_address()) ?>" value="<?= e((string) $mailCfg['from_address']) ?>"><small>Same domain as the mailbox, or it lands in spam.</small></label>
+            <label><span class="l">Sender name</span><input name="mail_from_name" maxlength="80" value="<?= e((string) $mailCfg['from_name']) ?>"></label>
+        </div>
+        <div class="actions"><button>Save email settings</button></div>
+    </form>
+    <form method="post" class="inline" style="margin-top:12px"><?= csrf_field() ?><input type="hidden" name="action" value="test_mail"><input type="email" required name="test_to" placeholder="Send a test to…" value="<?= e($admin['email']) ?>" aria-label="Test email address"><button class="ghost">Send test email</button></form>
+    <?php if (($lastMailError = sleek_mail_last_error()) !== ''): ?><p style="overflow-wrap:anywhere"><small>Last send failure: <?= e($lastMailError) ?></small></p><?php endif; ?>
+</section>
+
+<section class="card" id="keys">
+    <h2>Provider connections</h2>
+    <p class="muted">Keys are stored privately on this server and never shown again. Leave a field blank to keep its current value; tick Clear to remove it.</p>
+    <div class="stats" style="margin-top:12px">
+    <?php foreach ($providers as $name => $connected): ?>
+        <article class="card"><strong><?= e($name) ?></strong><p class="muted" style="margin:4px 0 0"><?= $connected ? 'Configured' : 'Keys missing' ?></p></article>
+    <?php endforeach; ?>
+    </div>
+    <form method="post" autocomplete="off"><?= csrf_field() ?><input type="hidden" name="action" value="save_provider_keys">
+        <div class="keys">
+        <?php foreach (sleek_admin_key_fields() as $field => [$section, $keyName, $label]): $isSet = (sleek_config($section)[$keyName] ?? '') !== ''; ?>
+            <label class="card"><strong><?= e($label) ?></strong><input type="password" name="<?= e($field) ?>" autocomplete="new-password" placeholder="<?= $isSet ? 'Leave blank to keep current value' : 'Not set — paste it here' ?>"><span class="check"><input type="checkbox" name="clear_<?= e($field) ?>" value="1"> Clear saved value</span></label>
+        <?php endforeach; ?>
+        </div>
+        <div class="actions" style="margin-top:12px"><button>Save provider keys</button></div>
+    </form>
+</section>
+<?php admin_layout_close(); ?>
