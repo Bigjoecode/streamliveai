@@ -3,6 +3,11 @@ $pageTitle = 'Credits & billing';
 $active    = 'billing';
 require __DIR__ . '/inc/dashboard-head.php';
 require __DIR__ . '/inc/dashboard-sidebar.php';
+require_once __DIR__ . '/inc/payments.php';
+
+// Only methods with keys set get a button. With none set, show the card button
+// anyway — buy explains that payments are unavailable instead of a blank card.
+$methods = sleek_payment_methods_available() ?: array_slice(sleek_payment_methods(), 0, 1, true);
 
 $flash = sleek_flash_take();
 
@@ -39,10 +44,13 @@ $flashStyle = [
                 <p class="font-mono text-[13px] text-signal"><?= number_format($pack['credits']) ?> credits</p>
                 <h2 class="mt-3 font-display text-[22px] font-semibold text-paper"><?= e($pack['name']) ?></h2>
                 <p class="mt-3 font-display text-[28px] font-semibold leading-none text-paper"><?= sleek_naira($pack['price']) ?></p>
-                <form method="POST" action="buy" data-buy>
+                <form method="POST" action="buy" data-buy class="mt-6 space-y-2.5">
                     <?= csrf_field() ?>
                     <input type="hidden" name="pack" value="<?= e($key) ?>">
-                    <button type="submit" class="btn-glow mt-6 w-full rounded-lg bg-signal py-3 text-[14.5px] font-semibold text-ink disabled:cursor-wait disabled:opacity-70">Buy with Paystack</button>
+                    <?php $first = true; foreach ($methods as $mKey => $m): ?>
+                        <button type="submit" name="method" value="<?= e($mKey) ?>" data-busy="<?= e($m['busy']) ?>" data-label="<?= e($m['label']) ?>"
+                                class="<?= $first ? 'btn-glow bg-signal text-ink' : 'border border-border bg-transparent text-paper hover:border-signal/60' ?> w-full rounded-lg py-3 text-[14.5px] font-semibold disabled:cursor-wait disabled:opacity-70"><?= e($m['label']) ?></button>
+                    <?php $first = false; endforeach; ?>
                 </form>
             </article>
         <?php endforeach; ?>
@@ -86,21 +94,24 @@ $flashStyle = [
 </main>
 
 <script>
-    // One click, one checkout: disable the button while we hand off to Paystack.
+    // One click, one checkout: lock the pack's buttons while we hand off to the
+    // provider. submitter says which button was pressed (its name/value still post).
     document.querySelectorAll('form[data-buy]').forEach(function (f) {
-        f.addEventListener('submit', function () {
-            var b = f.querySelector('button');
-            b.disabled = true;
-            b.textContent = 'Opening Paystack…';
+        f.addEventListener('submit', function (ev) {
+            var pressed = ev.submitter;
+            setTimeout(function () {   // after the browser has read the pressed button's value
+                f.querySelectorAll('button').forEach(function (b) { b.disabled = true; });
+                if (pressed) pressed.textContent = pressed.dataset.busy;
+            }, 0);
         });
     });
-    // Coming Back from Paystack restores this page from cache with the buttons
+    // Coming back from checkout restores this page from cache with the buttons
     // still disabled — put them back.
     window.addEventListener('pageshow', function (ev) {
         if (!ev.persisted) return;
         document.querySelectorAll('form[data-buy] button').forEach(function (b) {
             b.disabled = false;
-            b.textContent = 'Buy with Paystack';
+            b.textContent = b.dataset.label;
         });
     });
 </script>

@@ -58,14 +58,31 @@ return [
         'from_name'    => 'StreamLive AI',
     ],
 
-    'paystack' => [
-        // From dashboard.paystack.com → Settings → API Keys & Webhooks.
-        // sk_test_… while testing (no real money moves), sk_live_… in production.
-        // The same key also verifies webhook signatures.
+    'flutterwave' => [
+        // Card, bank transfer and USSD. From app.flutterwave.com → Settings → API Keys.
+        // FLWSECK_TEST-… while testing (no real money moves), FLWSECK-… in production.
         'secret_key' => '',
 
-        'api_base' => 'https://api.paystack.co',
-        'currency' => 'NGN',
+        // Settings → Webhooks: URL {app_url}/flutterwave-webhook, plus a "Secret hash"
+        // you make up. Put that same hash here — Flutterwave echoes it in verif-hash.
+        'webhook_hash' => '',
+
+        'api_base'        => 'https://api.flutterwave.com',
+        'payment_options' => 'card,banktransfer,ussd',
+    ],
+
+    'nowpayments' => [
+        // Crypto. From account.nowpayments.io → Settings → Payments → API keys.
+        'api_key' => '',
+
+        // Same page → "Instant payment notifications" → generate IPN secret key.
+        // Shown once; required, or crypto payments could never be confirmed.
+        'ipn_secret' => '',
+
+        'api_base' => 'https://api.nowpayments.io',   // sandbox: https://api-sandbox.nowpayments.io
+
+        // true: the buyer pays NOWPayments' network/service fee on top of the price.
+        'fee_paid_by_user' => false,
     ],
 
     'elevenlabs' => [

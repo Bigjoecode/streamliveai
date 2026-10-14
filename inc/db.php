@@ -62,6 +62,17 @@ function sleek_migrate(PDO $pdo): void
         'async_jobs' => $mysql ? 'CREATE TABLE IF NOT EXISTS async_jobs (job_id INT UNSIGNED NOT NULL PRIMARY KEY, provider VARCHAR(32) NOT NULL, request_id VARCHAR(255) NOT NULL, status_url VARCHAR(512) NOT NULL, response_url VARCHAR(512) NOT NULL, provider_status VARCHAR(32) NULL, last_polled_at INT UNSIGNED NULL, created_at INT UNSIGNED NOT NULL, CONSTRAINT async_jobs_job_fk FOREIGN KEY(job_id) REFERENCES jobs(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4' : 'CREATE TABLE IF NOT EXISTS async_jobs (job_id INTEGER PRIMARY KEY REFERENCES jobs(id) ON DELETE CASCADE, provider TEXT NOT NULL, request_id TEXT NOT NULL, status_url TEXT NOT NULL, response_url TEXT NOT NULL, provider_status TEXT NULL, last_polled_at INTEGER NULL, created_at INTEGER NOT NULL)',
     ];
     foreach ($tables as $sql) $pdo->exec($sql);
+
+    // Which processor took the payment. Rows from before the column existed were
+    // all Paystack.
+    $payCols = $mysql
+        ? $pdo->query('SHOW COLUMNS FROM payments')->fetchAll(PDO::FETCH_COLUMN)
+        : $pdo->query('PRAGMA table_info(payments)')->fetchAll(PDO::FETCH_COLUMN, 1);
+    if (!in_array('provider', $payCols, true)) {
+        $pdo->exec($mysql
+            ? "ALTER TABLE payments ADD COLUMN provider VARCHAR(16) NOT NULL DEFAULT 'paystack' AFTER user_id"
+            : "ALTER TABLE payments ADD COLUMN provider TEXT NOT NULL DEFAULT 'paystack'");
+    }
 }
 
 function sleek_is_duplicate(PDOException $e): bool

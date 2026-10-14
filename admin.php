@@ -1,6 +1,20 @@
 <?php
 require __DIR__ . '/inc/bootstrap.php';
 $admin = require_super_admin();
+
+/** Form field => [config section, key, label]. Every secret the admin can set. */
+function sleek_admin_key_fields(): array
+{
+    return [
+        'decart_key'          => ['decart',      'api_key',      'Decart key'],
+        'elevenlabs_key'      => ['elevenlabs',  'api_key',      'ElevenLabs key'],
+        'fal_key'             => ['fal',         'api_key',      'fal.ai key'],
+        'flutterwave_key'     => ['flutterwave', 'secret_key',   'Flutterwave secret key'],
+        'flutterwave_hash'    => ['flutterwave', 'webhook_hash', 'Flutterwave webhook secret hash'],
+        'nowpayments_key'     => ['nowpayments', 'api_key',      'NOWPayments API key'],
+        'nowpayments_ipn'     => ['nowpayments', 'ipn_secret',   'NOWPayments IPN secret'],
+    ];
+}
 $db = sleek_db();
 $notice = null;
 
@@ -24,10 +38,9 @@ if (sleek_is_post()) {
             $secretFile = __DIR__ . '/storage/provider-secrets.json';
             $saved = is_file($secretFile) ? json_decode((string) file_get_contents($secretFile), true) : [];
             if (!is_array($saved)) $saved = [];
-            $fields = ['decart' => 'api_key', 'elevenlabs' => 'api_key', 'fal' => 'api_key', 'paystack' => 'secret_key'];
-            foreach ($fields as $provider => $keyName) {
-                $newValue = is_string($_POST[$provider . '_key'] ?? null) ? trim($_POST[$provider . '_key']) : '';
-                $clear = isset($_POST['clear_' . $provider]);
+            foreach (sleek_admin_key_fields() as $field => [$provider, $keyName]) {
+                $newValue = is_string($_POST[$field] ?? null) ? trim($_POST[$field]) : '';
+                $clear = isset($_POST['clear_' . $field]);
                 if ($clear) $saved[$provider][$keyName] = '';
                 elseif ($newValue !== '') {
                     if (strlen($newValue) > 4096 || str_contains($newValue, "\0")) {
@@ -57,13 +70,14 @@ $stats = [
     'users' => (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn(),
     'admins' => (int) $db->query("SELECT COUNT(*) FROM users WHERE role IN ('admin','super_admin')")->fetchColumn(),
     'jobs' => (int) $db->query('SELECT COUNT(*) FROM jobs')->fetchColumn(),
-    'payments' => (int) $db->query("SELECT COUNT(*) FROM payments WHERE status = 'paid'")->fetchColumn(),
+    'payments' => (int) $db->query("SELECT COUNT(*) FROM payments WHERE status = 'success'")->fetchColumn(),
 ];
 $providers = [
     'Decart' => sleek_config('decart')['api_key'] !== '',
     'ElevenLabs' => sleek_config('elevenlabs')['api_key'] !== '',
     'fal.ai' => sleek_config('fal')['api_key'] !== '',
-    'Paystack' => sleek_config('paystack')['secret_key'] !== '',
+    'Flutterwave' => sleek_config('flutterwave')['secret_key'] !== '' && sleek_config('flutterwave')['webhook_hash'] !== '',
+    'NOWPayments (crypto)' => sleek_config('nowpayments')['api_key'] !== '' && sleek_config('nowpayments')['ipn_secret'] !== '',
 ];
 ?>
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>System Admin — <?= e((string) sleek_config('brand_name')) ?></title><style>
@@ -72,7 +86,7 @@ $providers = [
 <div class="top"><div><p class="muted"><?= e((string) sleek_config('brand_name')) ?> / Administration</p><h1>System control</h1><p class="muted">Signed in as <?= e($admin['email']) ?> · Super admin</p></div><a href="dashboard">User dashboard</a></div>
 <?php if ($notice): ?><p class="notice" role="status"><?= e($notice) ?></p><?php endif; ?>
 <section class="grid"><?php foreach ($stats as $label => $value): ?><article class="card"><div class="muted"><?= e(ucfirst($label)) ?></div><div class="number"><?= number_format($value) ?></div></article><?php endforeach; ?></section>
-<section class="card"><h2>Provider connections</h2><p class="muted">Keys are stored privately on this server. Saved values are never shown here. Leave a field blank to keep its current value; use Clear to remove it.</p><div class="grid"><?php foreach ($providers as $name => $connected): ?><article class="card"><strong><?= e($name) ?></strong><p class="muted"><?= $connected ? 'Key configured' : 'Key missing' ?></p></article><?php endforeach; ?></div><form method="post" autocomplete="off"><?= csrf_field() ?><input type="hidden" name="action" value="save_provider_keys"><?php foreach (['Decart'=>'decart','ElevenLabs'=>'elevenlabs','fal.ai'=>'fal','Paystack'=>'paystack'] as $label=>$key): ?><label class="card"><strong><?= e($label) ?> key</strong><input type="password" name="<?= e($key) ?>_key" autocomplete="new-password" placeholder="<?= $providers[$label] ? 'Leave blank to keep current key' : 'Paste key for this local server' ?>"><span><input type="checkbox" name="clear_<?= e($key) ?>" value="1"> Clear saved key</span></label><?php endforeach; ?><button>Save provider keys</button></form></section>
+<section class="card"><h2>Provider connections</h2><p class="muted">Keys are stored privately on this server. Saved values are never shown here. Leave a field blank to keep its current value; use Clear to remove it.</p><div class="grid"><?php foreach ($providers as $name => $connected): ?><article class="card"><strong><?= e($name) ?></strong><p class="muted"><?= $connected ? 'Configured' : 'Keys missing' ?></p></article><?php endforeach; ?></div><form method="post" autocomplete="off"><?= csrf_field() ?><input type="hidden" name="action" value="save_provider_keys"><?php foreach (sleek_admin_key_fields() as $field => [$section, $keyName, $label]): $isSet = (sleek_config($section)[$keyName] ?? '') !== ''; ?><label class="card"><strong><?= e($label) ?></strong><input type="password" name="<?= e($field) ?>" autocomplete="new-password" placeholder="<?= $isSet ? 'Leave blank to keep current value' : 'Not set — paste it here' ?>"><span><input type="checkbox" name="clear_<?= e($field) ?>" value="1"> Clear saved value</span></label><?php endforeach; ?><button>Save provider keys</button></form></section>
 <section class="card setup"><h2>Initial super admin setup</h2><p class="muted">Use the exact owner email and setup token configured privately in inc/config.local.php. This can transfer the super admin role to the verified owner account.</p><form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="promote_initial"><input required type="email" name="email" placeholder="Configured owner email"><input required type="password" name="setup_token" placeholder="Private setup token"><button>Verify and assign</button></form></section>
 <section class="card"><h2>Accounts</h2><p class="muted">Showing latest <?= count($users) ?> of <?= number_format($stats['users']) ?> accounts. The super admin role cannot be changed from the table.</p><div class="overflow"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Credits</th><th>Joined</th><th>Change role</th></tr></thead><tbody>
 <?php foreach ($users as $user): ?><tr><td><?= e($user['name']) ?></td><td><?= e($user['email']) ?></td><td><?= e($user['role']) ?></td><td><?= number_format((int) $user['credits']) ?></td><td><?= e(date('Y-m-d', (int) $user['created_at'])) ?></td><td><?php if ($user['role'] !== 'super_admin'): ?><form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="set_role"><input type="hidden" name="user_id" value="<?= (int) $user['id'] ?>"><select name="role"><option value="user"<?= $user['role'] === 'user' ? ' selected' : '' ?>>User</option><option value="admin"<?= $user['role'] === 'admin' ? ' selected' : '' ?>>Admin</option></select><button>Save</button></form><?php else: ?><small>Protected</small><?php endif; ?></td></tr><?php endforeach; ?>
