@@ -2,7 +2,31 @@
 require __DIR__ . '/inc/bootstrap.php';
 require __DIR__ . '/inc/catalog.php';
 require __DIR__ . '/inc/contact.php';
+require_once __DIR__ . '/inc/mailer.php';
 $admin = require_super_admin();
+
+/** storage/provider-secrets.json — private values layered over the config files. */
+function sleek_admin_secrets_read(): array
+{
+    $f = __DIR__ . '/storage/provider-secrets.json';
+    $saved = is_file($f) ? json_decode((string) file_get_contents($f), true) : [];
+    return is_array($saved) ? $saved : [];
+}
+
+function sleek_admin_secrets_write(array $saved): bool
+{
+    $f = __DIR__ . '/storage/provider-secrets.json';
+    $json = json_encode($saved, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    if ($json === false || file_put_contents($f, $json . PHP_EOL, LOCK_EX) === false) return false;
+    @chmod($f, 0600);
+    return true;
+}
+
+/** Secrets travel only over HTTPS (or from the machine itself, for local setup). */
+function sleek_admin_secure_channel(): bool
+{
+    return sleek_https() || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true);
+}
 
 /** Form field => [config section, key, label]. Every secret the admin can set. */
 function sleek_admin_key_fields(): array
@@ -32,9 +56,7 @@ if (sleek_is_post()) {
         $role = is_string($_POST['role'] ?? null) ? $_POST['role'] : '';
         $notice = $id && sleek_update_user_role((int) $id, $role) ? 'User role updated.' : 'Could not update this role.';
     } elseif ($action === 'save_provider_keys') {
-        $isLocal = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true);
-        $isHttps = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
-        if (!$isLocal && !$isHttps) {
+        if (!sleek_admin_secure_channel()) {
             $notice = 'Provider keys can only be saved over HTTPS or from this computer.';
         } else {
             $secretFile = __DIR__ . '/storage/provider-secrets.json';
@@ -61,6 +83,54 @@ if (sleek_is_post()) {
                     sleek_redirect('admin?keys=saved');
                 }
             }
+        }
+    } elseif ($action === 'save_mail') {
+        $host = trim(is_string($_POST['mail_host'] ?? null) ? $_POST['mail_host'] : '');
+        $port = filter_var($_POST['mail_port'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 65535]]);
+        $enc = is_string($_POST['mail_encryption'] ?? null) ? $_POST['mail_encryption'] : '';
+        $user = trim(is_string($_POST['mail_username'] ?? null) ? $_POST['mail_username'] : '');
+        $pass = is_string($_POST['mail_password'] ?? null) ? $_POST['mail_password'] : '';
+        $from = trim(is_string($_POST['mail_from_address'] ?? null) ? $_POST['mail_from_address'] : '');
+        $fromName = trim(is_string($_POST['mail_from_name'] ?? null) ? $_POST['mail_from_name'] : '');
+        if (!sleek_admin_secure_channel()) {
+            $notice = 'Email settings can only be saved over HTTPS.';
+        } elseif (!preg_match('/^[A-Za-z0-9.-]{1,253}$/', $host)) {
+            $notice = 'Email not saved: enter the SMTP server name, e.g. mail.yourdomain.com.';
+        } elseif ($port === false) {
+            $notice = 'Email not saved: the port must be a number (465 or 587 usually).';
+        } elseif (!in_array($enc, ['ssl', 'tls', ''], true)) {
+            $notice = 'Email not saved: pick an encryption option.';
+        } elseif ($from !== '' && !filter_var($from, FILTER_VALIDATE_EMAIL)) {
+            $notice = 'Email not saved: the sender address is not a valid email address.';
+        } elseif (mb_strlen($fromName) > 80 || strlen($pass) > 1024 || str_contains($pass . $user, "\0")) {
+            $notice = 'Email not saved: a value was too long or contained invalid characters.';
+        } else {
+            $saved = sleek_admin_secrets_read();
+            $mail = is_array($saved['mail'] ?? null) ? $saved['mail'] : [];
+            $mail = array_replace($mail, [
+                'driver' => 'smtp', 'host' => $host, 'port' => (int) $port, 'encryption' => $enc,
+                'username' => $user, 'from_address' => $from,
+                'from_name' => $fromName !== '' ? $fromName : (string) sleek_config('brand_name'),
+            ]);
+            // Blank password keeps the saved one; "clear" removes it.
+            if (isset($_POST['mail_password_clear'])) $mail['password'] = '';
+            elseif ($pass !== '') $mail['password'] = $pass;
+            $saved['mail'] = $mail;
+            if (sleek_admin_secrets_write($saved)) sleek_redirect('admin?saved=mail#email');
+            $notice = 'Could not write the private settings file.';
+        }
+    } elseif ($action === 'test_mail') {
+        $to = trim(is_string($_POST['test_to'] ?? null) ? $_POST['test_to'] : '');
+        if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
+            $notice = 'Test not sent: enter a valid address to send it to.';
+        } else {
+            $brand = (string) sleek_config('brand_name');
+            $sent = sleek_send_mail($to, $to, "{$brand} test email",
+                '<p>This is a test from ' . e($brand) . '. Email is working — password-reset links will arrive like this one.</p>',
+                "This is a test from {$brand}. Email is working — password-reset links will arrive like this one.");
+            $notice = $sent
+                ? "Test email sent to {$to}. If it isn't in the inbox within a minute, check spam."
+                : 'Test email failed: ' . (sleek_mail_last_error() ?: 'see storage/mail-error.log');
         }
     } elseif ($action === 'save_packs') {
         // Validate every pack first; save all or nothing.
@@ -117,6 +187,9 @@ if (sleek_is_post()) {
 if (($_GET['keys'] ?? '') === 'saved') $notice = 'Provider settings saved. Existing values stay hidden.';
 if (($_GET['saved'] ?? '') === 'packs') $notice = 'Prices saved. The pricing page, home page and billing page show them now.';
 if (($_GET['saved'] ?? '') === 'site') $notice = 'Community and notification settings saved.';
+if (($_GET['saved'] ?? '') === 'mail') $notice = 'Email settings saved. Send a test below to confirm they work.';
+$mailCfg = sleek_config('mail');
+$mailReady = sleek_mail_configured();
 
 require_once __DIR__ . '/inc/settings.php';
 $packs = sleek_packs();
@@ -147,6 +220,21 @@ $providers = [
 <div class="top"><div><p class="muted"><?= e((string) sleek_config('brand_name')) ?> / Administration</p><h1>System control</h1><p class="muted">Signed in as <?= e($admin['email']) ?> · Super admin</p></div><a href="dashboard">User dashboard</a></div>
 <?php if ($notice): ?><p class="notice" role="status"><?= e($notice) ?></p><?php endif; ?>
 <section class="grid"><?php foreach ($stats as $label => $value): ?><article class="card"><div class="muted"><?= e(ucfirst($label)) ?></div><div class="number"><?= number_format($value) ?></div></article><?php endforeach; ?></section>
+<?php if (!$mailReady): ?><p class="notice" role="alert" style="background:#3a2626">Email is not set up, so password-reset and notification emails are not being sent. Fill in <a href="#email">Email (SMTP)</a> below.</p><?php endif; ?>
+<section class="card" id="email" style="margin-top:20px"><h2>Email (SMTP)</h2><p class="muted">Used for password-reset links and contact notifications. On Namecheap: create a mailbox in cPanel → Email Accounts (e.g. no-reply@streamliveai.art), then use server <strong>mail.streamliveai.art</strong>, port <strong>465</strong>, SSL, and the full mailbox address and password. Status: <strong><?= $mailReady ? 'configured' : 'not set up' ?></strong>. Sends from <?= e(sleek_mail_from_address()) ?>.</p>
+<form method="post" class="wide" style="display:grid" autocomplete="off"><?= csrf_field() ?><input type="hidden" name="action" value="save_mail">
+<label>SMTP server<input required name="mail_host" placeholder="mail.streamliveai.art" value="<?= e($mailReady ? (string) $mailCfg['host'] : '') ?>"></label>
+<label>Port<input required type="number" min="1" max="65535" name="mail_port" value="<?= (int) ($mailReady ? $mailCfg['port'] : 465) ?>"></label>
+<label>Encryption<select name="mail_encryption"><?php foreach (['ssl' => 'SSL (port 465)', 'tls' => 'STARTTLS (port 587)', '' => 'None'] as $v => $l): ?><option value="<?= e($v) ?>"<?= ($mailReady ? $mailCfg['encryption'] : 'ssl') === $v ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
+<label>Username (usually the full mailbox address)<input name="mail_username" value="<?= e((string) $mailCfg['username']) ?>"></label>
+<label>Password<input type="password" name="mail_password" autocomplete="new-password" placeholder="<?= ($mailCfg['password'] ?? '') !== '' ? 'Leave blank to keep current password' : 'Mailbox password' ?>"><span><input type="checkbox" name="mail_password_clear" value="1"> Clear saved password</span></label>
+<label>Sender address (optional)<input type="email" name="mail_from_address" placeholder="<?= e(sleek_mail_from_address()) ?>" value="<?= e((string) $mailCfg['from_address']) ?>"><small>Use the mailbox above, or an address on the same domain — other domains get marked as spam.</small></label>
+<label>Sender name<input name="mail_from_name" maxlength="80" value="<?= e((string) $mailCfg['from_name']) ?>"></label>
+<div><button>Save email settings</button></div></form>
+<form method="post" style="margin-top:14px"><?= csrf_field() ?><input type="hidden" name="action" value="test_mail"><input type="email" required name="test_to" placeholder="Send a test to…" value="<?= e($admin['email']) ?>"><button class="ghost">Send test email</button></form>
+<?php if (($lastMailError = sleek_mail_last_error()) !== ''): ?><p class="muted" style="overflow-wrap:anywhere"><small>Last send failure: <?= e($lastMailError) ?></small></p><?php endif; ?>
+</section>
+
 <section class="card" id="pricing" style="margin-top:20px"><h2>Pricing</h2><p class="muted">Credit packs, priced in US dollars. Changes show at once on the pricing page, the home page (first three packs) and Credits &amp; billing. A payment already started keeps the price it was started at. Badge is optional (e.g. "Most popular"); a pack with a badge is highlighted.</p>
 <form method="post" style="display:block"><?= csrf_field() ?><input type="hidden" name="action" value="save_packs"><div class="packs">
 <?php foreach ($packs as $key => $p): ?><fieldset class="card pack" style="margin:0"><legend class="muted"><?= e($key) ?></legend>

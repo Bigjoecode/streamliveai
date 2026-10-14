@@ -26,7 +26,7 @@ function sleek_send_mail(string $toEmail, string $toName, string $subject, strin
         // PHPMailer otherwise builds the Message-ID and SMTP greeting from SERVER_NAME,
         // which Apache takes from the request's (forgeable) Host header.
         $mail->Hostname = parse_url(sleek_config('app_url'), PHP_URL_HOST) ?: 'localhost';
-        $mail->setFrom($cfg['from_address'], $cfg['from_name']);
+        $mail->setFrom(sleek_mail_from_address(), $cfg['from_name']);
         $mail->addAddress($toEmail, $toName);
         $mail->Subject = $subject;
         $mail->isHTML(true);
@@ -65,6 +65,36 @@ function sleek_send_mail(string $toEmail, string $toName, string $subject, strin
         ));
         return false;
     }
+}
+
+/** The sender address: the configured one, else no-reply@ the site's own domain. */
+function sleek_mail_from_address(): string
+{
+    $from = (string) (sleek_config('mail')['from_address'] ?? '');
+    if ($from !== '') return $from;
+    $host = (string) parse_url(sleek_config('app_url'), PHP_URL_HOST);
+    return 'no-reply@' . preg_replace('/^www\./', '', $host !== '' ? $host : 'localhost');
+}
+
+/**
+ * False while mail still points at the placeholder host — every reset email would
+ * fail. The admin page warns about it.
+ */
+function sleek_mail_configured(): bool
+{
+    $cfg = sleek_config('mail');
+    if (($cfg['driver'] ?? 'smtp') === 'log') return true;
+    $host = (string) ($cfg['host'] ?? '');
+    return $host !== '' && $host !== 'smtp.example.com';
+}
+
+/** The newest line of storage/mail-error.log, for the admin page. */
+function sleek_mail_last_error(): string
+{
+    $f = __DIR__ . '/../storage/mail-error.log';
+    if (!is_file($f)) return '';
+    $lines = file($f, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
+    return (string) end($lines);
 }
 
 /** Append to a file in storage/ (web-denied), creating it if needed. */

@@ -54,7 +54,9 @@ return [
         'username'   => '',
         'password'   => '',
 
-        'from_address' => 'no-reply@sleekai.com.ng',
+        // '' means no-reply@<the app_url domain>. The super admin can set all of
+        // this at /admin → Email instead of editing files.
+        'from_address' => '',
         'from_name'    => 'StreamLive AI',
     ],
 
