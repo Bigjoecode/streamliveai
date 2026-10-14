@@ -7,16 +7,25 @@
 
 declare(strict_types=1);
 
-/** Credit packs, keyed by the id the buy form posts. Prices in whole naira. */
+/** The currency every pack is priced and charged in. */
+function sleek_catalog_currency(): string
+{
+    return 'USD';
+}
+
+/**
+ * Credit packs, keyed by the id the buy form posts. Prices in whole US dollars.
+ * The public index.html and pricing.html show these too — update them together.
+ */
 function sleek_packs(): array
 {
     return [
-        'starter'  => ['credits' =>    500, 'name' => 'Starter',  'price' =>  18000],
-        'creator'  => ['credits' =>   1000, 'name' => 'Creator',  'price' =>  30000, 'badge' => 'Most popular'],
-        'studio'   => ['credits' =>   2000, 'name' => 'Studio',   'price' =>  57000],
-        'premium'  => ['credits' =>   4000, 'name' => 'Premium',  'price' => 112000],
-        'pro'      => ['credits' =>   6000, 'name' => 'Pro',      'price' => 167000],
-        'ultimate' => ['credits' =>  10000, 'name' => 'Ultimate', 'price' => 280000],
+        'starter'  => ['credits' =>    500, 'name' => 'Starter',  'price' =>  12],
+        'creator'  => ['credits' =>   1000, 'name' => 'Creator',  'price' =>  20, 'badge' => 'Most popular'],
+        'studio'   => ['credits' =>   2000, 'name' => 'Studio',   'price' =>  38],
+        'premium'  => ['credits' =>   4000, 'name' => 'Premium',  'price' =>  75],
+        'pro'      => ['credits' =>   6000, 'name' => 'Pro',      'price' => 110],
+        'ultimate' => ['credits' =>  10000, 'name' => 'Ultimate', 'price' => 185],
     ];
 }
 

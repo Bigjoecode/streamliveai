@@ -43,7 +43,7 @@ $flashStyle = [
                 <?php endif; ?>
                 <p class="font-mono text-[13px] text-signal"><?= number_format($pack['credits']) ?> credits</p>
                 <h2 class="mt-3 font-display text-[22px] font-semibold text-paper"><?= e($pack['name']) ?></h2>
-                <p class="mt-3 font-display text-[28px] font-semibold leading-none text-paper"><?= sleek_naira($pack['price']) ?></p>
+                <p class="mt-3 font-display text-[28px] font-semibold leading-none text-paper"><?= sleek_money($pack['price'] * 100, sleek_catalog_currency()) ?></p>
                 <form method="POST" action="buy" data-buy class="mt-6 space-y-2.5">
                     <?= csrf_field() ?>
                     <input type="hidden" name="pack" value="<?= e($key) ?>">
@@ -75,7 +75,7 @@ $flashStyle = [
                     <?php foreach ($transactions as $tx): [$label, $pill] = $statusPill[$tx['status']] ?? [$tx['status'], 'border-border text-muted']; ?>
                         <tr class="border-b border-border last:border-0">
                             <td class="px-5 py-3.5 text-paper"><?= e($tx['pack']) ?></td>
-                            <td class="px-5 py-3.5 font-mono text-muted"><?= sleek_naira($tx['amount']) ?></td>
+                            <td class="px-5 py-3.5 font-mono text-muted"><?= $tx['amount'] ?></td>
                             <td class="px-5 py-3.5 font-mono <?= $tx['status'] === 'success' ? 'text-signal' : 'text-muted line-through decoration-muted/50' ?>">+<?= number_format($tx['credits']) ?></td>
                             <td class="px-5 py-3.5"><span class="rounded-full border px-2.5 py-0.5 text-[12px] <?= $pill ?>"><?= e($label) ?></span></td>
                             <td class="px-5 py-3.5 text-muted"><?= e($tx['when']) ?></td>

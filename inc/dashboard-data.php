@@ -16,10 +16,15 @@ function sleek_greeting(): string
     return 'Good evening';
 }
 
-/** Naira amount, formatted the way the billing page shows it. */
-function sleek_naira(int|float $amount): string
+/**
+ * Money in minor units (cents, kobo), formatted the way the billing page shows it:
+ * $12, $12.50, ₦18,000. Returns HTML-safe text.
+ */
+function sleek_money(int $minor, string $currency): string
 {
-    return '&#8358;' . number_format((float) $amount);
+    $symbol = ['USD' => '$', 'NGN' => '&#8358;'][strtoupper($currency)] ?? e(strtoupper($currency)) . ' ';
+    $amount = $minor / 100;
+    return $symbol . number_format($amount, $minor % 100 === 0 ? 0 : 2);
 }
 
 /** "3 days ago" style age for a unix timestamp. */
@@ -108,13 +113,13 @@ $activity = array_map(fn(array $r) => [
 
 // Credits & billing "Recent transactions": completed and failed payments, plus
 // checkouts still in progress. Checkouts abandoned over an hour ago are left out.
-$stmt = $db->prepare("SELECT pack_key, credits, amount_kobo, status, created_at, paid_at FROM payments
+$stmt = $db->prepare("SELECT pack_key, credits, amount_kobo, currency, status, created_at, paid_at FROM payments
                       WHERE user_id = ? AND (status <> 'pending' OR created_at > ?)
                       ORDER BY created_at DESC, id DESC LIMIT 20");
 $stmt->execute([$authUser['id'], time() - 3600]);
 $transactions = array_map(fn(array $r) => [
     'pack'    => (sleek_pack($r['pack_key'])['name'] ?? ucfirst($r['pack_key'])) . ' pack',
-    'amount'  => intdiv((int) $r['amount_kobo'], 100),
+    'amount'  => sleek_money((int) $r['amount_kobo'], (string) $r['currency']),
     'credits' => (int) $r['credits'],
     'status'  => $r['status'],
     'when'    => sleek_ago((int) ($r['paid_at'] ?: $r['created_at'])),

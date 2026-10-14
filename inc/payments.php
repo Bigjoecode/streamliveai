@@ -3,7 +3,7 @@
  * SleekAI — payments, independent of who processes them.
  *
  * Two providers sell the same credit packs:
- *   flutterwave  card, bank transfer, USSD   (inc/flutterwave.php)
+ *   flutterwave  card                        (inc/flutterwave.php)
  *   nowpayments  crypto                      (inc/nowpayments.php)
  *
  * Flow: buy.php records a pending payment and sends the buyer to the provider's
@@ -15,7 +15,10 @@
  * Adapters never hand raw provider payloads to this file. They translate what the
  * provider's own API reports into one normalised shape:
  *   ['reference' => 'SLK-…', 'status' => 'success'|'failed'|'pending',
- *    'amount_kobo' => int, 'currency' => 'NGN', 'gateway' => 'short note']
+ *    'amount_kobo' => int, 'currency' => 'USD', 'gateway' => 'short note']
+ *
+ * amount_kobo (the column name predates USD) is the amount in minor units of
+ * whatever `currency` says — cents for USD. Integers only, so no float drift.
  */
 
 declare(strict_types=1);
@@ -29,7 +32,7 @@ final class SleekPaymentError extends RuntimeException {}
 function sleek_payment_methods(): array
 {
     return [
-        'flutterwave' => ['label' => 'Pay with card / bank', 'busy' => 'Opening checkout…'],
+        'flutterwave' => ['label' => 'Pay with card',        'busy' => 'Opening checkout…'],
         'nowpayments' => ['label' => 'Pay with crypto',      'busy' => 'Opening crypto checkout…'],
     ];
 }
@@ -61,8 +64,8 @@ function sleek_payment_create(array $user, string $packKey, string $provider): a
     if ($pack === null) throw new InvalidArgumentException('Unknown credit pack.');
 
     $reference = 'SLK-' . strtoupper(bin2hex(random_bytes(10)));
-    $kobo      = $pack['price'] * 100;
-    $currency  = 'NGN';
+    $kobo      = $pack['price'] * 100;      // minor units: cents
+    $currency  = sleek_catalog_currency();
 
     sleek_db()->prepare('INSERT INTO payments (user_id, provider, reference, pack_key, credits, amount_kobo, currency, status, created_at)
                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
@@ -149,7 +152,7 @@ function sleek_fulfil_payment(string $reference, array $tx): string
     }
 
     // Never trust that the amount paid is the amount we asked for — a tampered
-    // checkout could pay ₦1 for the ₦280,000 pack.
+    // checkout could pay $1 for the $185 pack.
     if ((int) ($tx['amount_kobo'] ?? -1) !== (int) $payment['amount_kobo']
         || strtoupper((string) ($tx['currency'] ?? '')) !== $payment['currency']) {
         $db->prepare("UPDATE payments SET status = 'failed', gateway_response = ? WHERE reference = ? AND status <> 'success'")
@@ -263,7 +266,7 @@ function sleek_payment_http(string $method, string $url, array $headers, ?array 
     return ['status' => $status, 'json' => is_array($json) ? $json : null];
 }
 
-/** Naira in kobo from a provider's decimal amount, without float drift. */
+/** Minor units (cents) from a provider's decimal amount, e.g. 12.5 → 1250. */
 function sleek_to_kobo(int|float|string $amount): int
 {
     return (int) round(((float) $amount) * 100);

@@ -1,6 +1,6 @@
 <?php
 /**
- * SleekAI — NOWPayments (crypto). The pack is priced in naira; NOWPayments converts
+ * SleekAI — NOWPayments (crypto). The pack is priced in USD; NOWPayments converts
  * that to whichever coin the buyer picks on its hosted invoice page.
  *
  *   checkout   POST /v1/invoice              x-api-key   → invoice_url
