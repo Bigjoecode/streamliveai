@@ -243,7 +243,7 @@
                         </div>
                         <div class="glass glow-card flex-1 rounded-lg p-6">
                             <h3 class="font-display text-xl">Buy a credit pack (optional, any time)</h3>
-                            <p class="mt-2 text-muted">Pick a pack, pay by card or crypto (prices in US dollars), and your balance updates as soon as the payment confirms.</p>
+                            <p class="mt-2 text-muted">Pick a pack, pay in naira (card, bank transfer or USSD) or with crypto, and your balance updates as soon as the payment confirms.</p>
                         </div>
                     </div>
                                     <div class="reveal relative flex gap-6">

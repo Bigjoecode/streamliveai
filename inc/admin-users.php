@@ -19,7 +19,7 @@ const SLEEK_ADMIN_ROLES = ['user' => 'User', 'admin' => 'Admin'];
 /** How a payment was made, in words a person uses. */
 function sleek_admin_payment_method(string $provider): string
 {
-    return ['flutterwave' => 'Card', 'nowpayments' => 'Crypto', 'paystack' => 'Paystack'][$provider] ?? ucfirst($provider);
+    return ['flutterwave' => 'Naira', 'nowpayments' => 'Crypto', 'paystack' => 'Paystack'][$provider] ?? ucfirst($provider);
 }
 
 function sleek_admin_find_user(int $id): ?array

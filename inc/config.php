@@ -61,8 +61,8 @@ return [
     ],
 
     'flutterwave' => [
-        // Card payments, charged in USD (the catalog currency) — the account needs USD
-        // collections enabled. From app.flutterwave.com → Settings → API Keys.
+        // Naira payments: packs are charged in ₦ at the rate set in /admin-pricing.
+        // From app.flutterwave.com → Settings → API Keys.
         // FLWSECK_TEST-… while testing (no real money moves), FLWSECK-… in production.
         'secret_key' => '',
 
@@ -71,8 +71,7 @@ return [
         'webhook_hash' => '',
 
         'api_base'        => 'https://api.flutterwave.com',
-        // Bank transfer and USSD are naira-only, so with USD prices only card applies.
-        'payment_options' => 'card',
+        'payment_options' => 'card,banktransfer,ussd',
     ],
 
     'nowpayments' => [

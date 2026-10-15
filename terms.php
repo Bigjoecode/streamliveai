@@ -260,8 +260,9 @@
             <p class="mt-2 leading-relaxed">
                 Access to the Services is billed using credits, purchased in packs with no subscription and no
                 expiry date. Livestream is metered per second rather than a flat rate. Payments are
-                processed by Flutterwave (cards) and NOWPayments (cryptocurrency). Prices are in US dollars
-                (USD); if your card is in another currency, your bank's exchange rate and fees apply;
+                processed by Flutterwave (naira: card, bank transfer, USSD) and NOWPayments (cryptocurrency).
+                Prices are listed in US dollars; naira payments are charged at the naira amount shown at
+                checkout, and crypto payments in US dollars;
                 we do not store your card details ourselves. Crypto payments are credited once the
                 network confirms them, and must be sent in full — an underpaid crypto payment is not
                 credited automatically; contact support with your payment reference. Credits

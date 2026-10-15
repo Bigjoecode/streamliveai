@@ -59,6 +59,35 @@ function sleek_money(int $minor, string $currency): string
     return $symbol . number_format($amount, $minor % 100 === 0 ? 0 : 2);
 }
 
+/** ₦ per $1 until the super admin sets one (the rate the original naira prices implied). */
+const SLEEK_DEFAULT_NGN_RATE = 1500;
+
+/** Naira per US dollar, set at /admin-pricing. Naira prices follow the USD prices through it. */
+function sleek_ngn_rate(): float
+{
+    require_once __DIR__ . '/settings.php';
+    $r = sleek_setting('ngn_rate', null);
+    return is_numeric($r) && (float) $r > 0 ? (float) $r : (float) SLEEK_DEFAULT_NGN_RATE;
+}
+
+/** A pack's naira price in kobo: USD price × rate, rounded to the nearest ₦100. */
+function sleek_pack_ngn_kobo(array $pack): int
+{
+    $naira = (int) round(((float) $pack['price']) * sleek_ngn_rate() / 100) * 100;
+    return max(100, $naira) * 100;
+}
+
+/**
+ * What a pack costs through a payment method, as [minor units, currency]:
+ * Flutterwave charges naira, crypto is priced in US dollars.
+ */
+function sleek_pack_charge(array $pack, string $provider): array
+{
+    return $provider === 'flutterwave'
+        ? [sleek_pack_ngn_kobo($pack), 'NGN']
+        : [sleek_pack_cents($pack), sleek_catalog_currency()];
+}
+
 /** A pack's price in cents — the only form money is charged or compared in. */
 function sleek_pack_cents(array $pack): int
 {

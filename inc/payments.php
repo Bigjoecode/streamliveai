@@ -3,7 +3,7 @@
  * SleekAI — payments, independent of who processes them.
  *
  * Two providers sell the same credit packs:
- *   flutterwave  card                        (inc/flutterwave.php)
+ *   flutterwave  naira: card, bank transfer, USSD   (inc/flutterwave.php)
  *   nowpayments  crypto                      (inc/nowpayments.php)
  *
  * Flow: buy.php records a pending payment and sends the buyer to the provider's
@@ -32,7 +32,7 @@ final class SleekPaymentError extends RuntimeException {}
 function sleek_payment_methods(): array
 {
     return [
-        'flutterwave' => ['label' => 'Pay with card',        'busy' => 'Opening checkout…'],
+        'flutterwave' => ['label' => 'Pay with Naira',       'busy' => 'Opening checkout…'],
         'nowpayments' => ['label' => 'Pay with crypto',      'busy' => 'Opening crypto checkout…'],
     ];
 }
@@ -64,8 +64,7 @@ function sleek_payment_create(array $user, string $packKey, string $provider): a
     if ($pack === null) throw new InvalidArgumentException('Unknown credit pack.');
 
     $reference = 'SLK-' . strtoupper(bin2hex(random_bytes(10)));
-    $kobo      = sleek_pack_cents($pack);      // minor units: cents
-    $currency  = sleek_catalog_currency();
+    [$kobo, $currency] = sleek_pack_charge($pack, $provider);   // naira via Flutterwave, USD via crypto
 
     sleek_db()->prepare('INSERT INTO payments (user_id, provider, reference, pack_key, credits, amount_kobo, currency, status, created_at)
                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')

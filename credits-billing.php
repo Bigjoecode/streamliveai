@@ -44,12 +44,13 @@ $flashStyle = [
                 <p class="font-mono text-[13px] text-signal"><?= number_format($pack['credits']) ?> credits</p>
                 <h2 class="mt-3 font-display text-[22px] font-semibold text-paper"><?= e($pack['name']) ?></h2>
                 <p class="mt-3 font-display text-[28px] font-semibold leading-none text-paper"><?= sleek_money(sleek_pack_cents($pack), sleek_catalog_currency()) ?></p>
+                <p class="mt-2 text-[13.5px] text-muted">≈ <?= sleek_money(sleek_pack_ngn_kobo($pack), 'NGN') ?></p>
                 <form method="POST" action="buy" data-buy class="mt-6 space-y-2.5">
                     <?= csrf_field() ?>
                     <input type="hidden" name="pack" value="<?= e($key) ?>">
-                    <?php $first = true; foreach ($methods as $mKey => $m): ?>
-                        <button type="submit" name="method" value="<?= e($mKey) ?>" data-busy="<?= e($m['busy']) ?>" data-label="<?= e($m['label']) ?>"
-                                class="<?= $first ? 'btn-glow bg-signal text-ink' : 'border border-border bg-transparent text-paper hover:border-signal/60' ?> w-full rounded-lg py-3 text-[14.5px] font-semibold disabled:cursor-wait disabled:opacity-70"><?= e($m['label']) ?></button>
+                    <?php $first = true; foreach ($methods as $mKey => $m): [$amt, $cur] = sleek_pack_charge($pack, $mKey); $label = $m['label'] . ' — ' . html_entity_decode(sleek_money($amt, $cur), ENT_QUOTES, 'UTF-8'); ?>
+                        <button type="submit" name="method" value="<?= e($mKey) ?>" data-busy="<?= e($m['busy']) ?>" data-label="<?= e($label) ?>"
+                                class="<?= $first ? 'btn-glow bg-signal text-ink' : 'border border-border bg-transparent text-paper hover:border-signal/60' ?> w-full rounded-lg py-3 text-[14.5px] font-semibold disabled:cursor-wait disabled:opacity-70"><?= e($label) ?></button>
                     <?php $first = false; endforeach; ?>
                 </form>
             </article>

@@ -178,11 +178,14 @@ if (sleek_is_post()) {
             foreach ($features as $f) if (mb_strlen($f) > 80) { $problems[] = "{$label}: each feature line is limited to 80 characters."; break; }
             $packs[$key] = ['name' => $name, 'credits' => (int) $credits, 'price' => (float) $priceRaw, 'badge' => $badge, 'features' => $features];
         }
+        $rateRaw = trim(is_string($_POST['ngn_rate'] ?? null) ? $_POST['ngn_rate'] : '');
+        if (!preg_match('/^\d{1,6}(\.\d{1,2})?$/', $rateRaw) || (float) $rateRaw < 1) $problems[] = 'Exchange rate: enter naira per $1, e.g. 1550.';
         if ($problems) {
             $notice = 'Prices not saved. ' . implode(' ', $problems);
         } else {
             require_once __DIR__ . '/inc/settings.php';
             sleek_setting_set('packs', $packs);
+            sleek_setting_set('ngn_rate', (float) $rateRaw);
             sleek_redirect('admin-pricing?saved=packs');
         }
     } elseif ($action === 'save_site') {
@@ -289,7 +292,7 @@ if ($adminView === 'overview') {
     $packsSaved = sleek_setting('packs', null) !== null;
     $checklist = [
         ['Email (SMTP) is set up', $mailReady, 'admin-email', 'Set up'],
-        ['Card payments (Flutterwave) connected', $providers['Flutterwave'], 'admin-providers', 'Connect'],
+        ['Naira payments (Flutterwave) connected', $providers['Flutterwave'], 'admin-providers', 'Connect'],
         ['Crypto payments (NOWPayments) connected', $providers['NOWPayments (crypto)'], 'admin-providers', 'Connect'],
         ['Telegram channel added', $telegramUrl !== '', 'admin-community', 'Add'],
         ['Pack prices reviewed', $packsSaved, 'admin-pricing', 'Review'],
@@ -484,8 +487,11 @@ admin_layout_open($titles[$adminView], $admin, $notice, $noticeBad, $adminView);
 
 <?php if ($adminView === 'pricing'): ?>
 <section class="card">
-    <p class="muted" style="margin-top:0">Credit packs, priced in US dollars. Changes show at once on the pricing page, the home page (first three packs) and Credits &amp; billing. A payment already started keeps its price. A pack with a badge (e.g. “Most popular”) is highlighted.</p>
+    <p class="muted" style="margin-top:0">Credit packs are priced in US dollars. Crypto is charged in dollars; <strong>Pay with Naira</strong> (Flutterwave: card, bank transfer, USSD) charges the dollar price × your exchange rate, rounded to the nearest ₦100. Changes show at once on the pricing page, the home page (first three packs) and Credits &amp; billing. A payment already started keeps its price. A pack with a badge (e.g. “Most popular”) is highlighted.</p>
     <form method="post" action="admin-pricing"><?= csrf_field() ?><input type="hidden" name="action" value="save_packs">
+        <div class="form-grid two" style="margin-top:12px">
+            <label><span class="l">Exchange rate — naira per $1</span><input required inputmode="decimal" pattern="\d{1,6}(\.\d{1,2})?" name="ngn_rate" value="<?= e(rtrim(rtrim(number_format(sleek_ngn_rate(), 2, '.', ''), '0'), '.')) ?>"><small>Update it when the dollar moves. Today: $1 = <?= sleek_money((int) round(sleek_ngn_rate() * 100), 'NGN') ?>.</small></label>
+        </div>
         <div class="packs">
         <?php foreach ($packs as $key => $p): ?>
             <fieldset class="pack"><legend><?= e($key) ?></legend>
@@ -494,6 +500,7 @@ admin_layout_open($titles[$adminView], $admin, $notice, $noticeBad, $adminView);
                     <label><span class="l">Credits</span><input required type="number" min="1" step="1" name="packs[<?= e($key) ?>][credits]" value="<?= (int) $p['credits'] ?>"></label>
                     <label><span class="l">Price (USD)</span><input required inputmode="decimal" pattern="\d{1,6}(\.\d{1,2})?" name="packs[<?= e($key) ?>][price]" value="<?= e(rtrim(rtrim(number_format((float) $p['price'], 2, '.', ''), '0'), '.')) ?>"></label>
                 </div>
+                <small>Naira price now: <?= sleek_money(sleek_pack_ngn_kobo($p), 'NGN') ?></small>
                 <label><span class="l">Badge (optional)</span><input maxlength="30" name="packs[<?= e($key) ?>][badge]" value="<?= e($p['badge'] ?? '') ?>"></label>
                 <label><span class="l">Features, one per line</span><textarea rows="3" name="packs[<?= e($key) ?>][features]"><?= e(implode("\n", $p['features'])) ?></textarea></label>
             </fieldset>

@@ -37,6 +37,7 @@ function sleek_public_pack_cards(?array $keys = null): void
             <p class="font-mono text-xs text-signal"><?= number_format((int) $p['credits']) ?> credits</p>
             <p class="mt-2 font-display text-2xl"><?= e($p['name']) ?></p>
             <p class="mt-4 font-display text-3xl"><?= sleek_money(sleek_pack_cents($p), sleek_catalog_currency()) ?></p>
+            <p class="mt-1 text-sm text-muted">≈ <?= sleek_money(sleek_pack_ngn_kobo($p), 'NGN') ?> · pay in naira or crypto</p>
             <?php if ($p['features']): ?>
                 <div class="mt-5 border-t border-border/70 pt-5">
                     <ul class="space-y-2 text-sm text-muted">

@@ -1,6 +1,6 @@
 <?php
 /**
- * SleekAI — Flutterwave (card, charged in USD). Flutterwave Standard v3:
+ * SleekAI — Flutterwave (naira: card, bank transfer, USSD). Flutterwave Standard v3:
  * a hosted checkout link, verified afterwards by our own reference.
  *
  *   checkout   POST /v3/payments                                → data.link
@@ -65,7 +65,7 @@ function sleek_flutterwave_verify(string $reference): array
     $status = match ((string) ($tx['status'] ?? '')) {
         'successful' => 'success',
         'failed'     => 'failed',
-        default      => 'pending',   // e.g. a card payment still in 3-D Secure / review
+        default      => 'pending',   // e.g. a bank transfer that hasn't landed yet
     };
     return [
         'reference'   => (string) ($tx['tx_ref'] ?? ''),

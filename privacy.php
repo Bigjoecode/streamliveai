@@ -227,7 +227,7 @@
             <ul class="mt-2 list-disc space-y-1 pl-5">
                 <li><strong class="text-paper">Account data:</strong> name, email address, and password (stored as a one-way hash, never in plain text), or your Google/Facebook profile information if you sign up that way.</li>
                 <li><strong class="text-paper">Face and voice data:</strong> photos, voice samples, and recordings you upload to use a specific tool. These are processed to generate your output and, for Voice Cloning specifically, a voice model is created with our AI provider (ElevenLabs) to fulfill your request.</li>
-                <li><strong class="text-paper">Payment data:</strong> we never see or store your card number or wallet keys. Flutterwave (cards) and NOWPayments (crypto) handle payment details directly and only pass us confirmation that a payment succeeded.</li>
+                <li><strong class="text-paper">Payment data:</strong> we never see or store your card number or wallet keys. Flutterwave (naira: card, bank transfer, USSD) and NOWPayments (crypto) handle payment details directly and only pass us confirmation that a payment succeeded.</li>
                 <li><strong class="text-paper">Usage data:</strong> which tools you use, job history, and credit transactions, so your dashboard and billing history work correctly.</li>
             </ul>
         </section>
@@ -247,7 +247,7 @@
             <ul class="mt-2 list-disc space-y-1 pl-5">
                 <li><strong class="text-paper">ElevenLabs</strong> — processes voice samples and text for Voice Cloning, Text to Speech, Voice Isolator, and Voice Changer.</li>
                 <li><strong class="text-paper">Decart</strong> — processes reference face images and live video for Livestream (this runs as a direct connection between your browser and Decart, not routed through our server).</li>
-                <li><strong class="text-paper">Flutterwave</strong> — processes card payments for credit purchases.</li>
+                <li><strong class="text-paper">Flutterwave</strong> — processes naira payments (card, bank transfer, USSD) for credit purchases.</li>
                 <li><strong class="text-paper">NOWPayments</strong> — processes cryptocurrency payments for credit purchases.</li>
                 <li><strong class="text-paper">Google / Facebook</strong> — if you use social sign-in, they confirm your identity and share your basic profile information with us.</li>
             </ul>
