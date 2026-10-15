@@ -128,6 +128,25 @@ function sleek_live_start(int $userId, int $minutes, int $consentAt): array
 }
 
 /**
+ * Append the browser's connection-quality summary for a session to
+ * storage/live-diag.log (one JSON line, latest wins per job when reading). Only
+ * well-formed, size-capped JSON from the session's owner is kept.
+ */
+function sleek_live_diag_log(int $jobId, int $userId, string $raw): void
+{
+    if ($raw === '' || strlen($raw) > 8000) return;
+    $data = json_decode($raw, true);
+    if (!is_array($data)) return;
+    $owner = sleek_db()->prepare('SELECT 1 FROM live_sessions WHERE job_id = ? AND user_id = ?');
+    $owner->execute([$jobId, $userId]);
+    if (!$owner->fetchColumn()) return;
+    $dir = __DIR__ . '/../storage';
+    if (!is_dir($dir)) mkdir($dir, 0775, true);
+    $line = json_encode(['at' => date('c'), 'job' => $jobId, 'user' => $userId, 'diag' => $data], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    if (is_string($line)) file_put_contents($dir . '/live-diag.log', $line . "\n", FILE_APPEND | LOCK_EX);
+}
+
+/**
  * Decart speed tier, set at /admin-providers: 'standard', or 'fast' — lower latency
  * and smoother motion at twice Decart's per-second price (Lucy 2.5 supports it).
  */

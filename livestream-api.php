@@ -68,6 +68,7 @@ switch ($_POST['action'] ?? '') {
         $reply(200, ['ok' => true, 'job' => $s['job'], 'token' => $s['token'], 'model' => $s['model'], 'speed' => $s['speed'], 'maxSeconds' => $s['max_seconds']]);
 
     case 'tick':
+        sleek_live_diag_log($int('job'), $uid, is_string($_POST['diag'] ?? null) ? $_POST['diag'] : '');
         $s = sleek_live_report($int('job'), $uid, $int('seconds'));
         if ($s === null) $reply(404, ['ok' => false, 'error' => 'No such session.']);
         $reply(200, [
@@ -79,6 +80,7 @@ switch ($_POST['action'] ?? '') {
 
     case 'end':
         $jobId = $int('job');
+        sleek_live_diag_log($jobId, $uid, is_string($_POST['diag'] ?? null) ? $_POST['diag'] : '');
         $s = sleek_live_report($jobId, $uid, $int('seconds'));
         if ($s === null) $reply(404, ['ok' => false, 'error' => 'No such session.']);
 

@@ -72,10 +72,11 @@ $minCost = min($cfg['session_minutes']) * 60 * $rate;
                 <span id="liveStatus" class="absolute left-3 top-3 hidden items-center gap-1.5 rounded-full bg-ink/80 px-2.5 py-1 font-mono text-[11px] tracking-wider text-muted backdrop-blur">
                     <span class="h-1.5 w-1.5 rounded-full bg-muted" data-dot></span><span data-text>IDLE</span>
                 </span>
+                <span id="liveQuality" class="absolute bottom-3 left-3 hidden items-center gap-1.5 rounded-full bg-ink/80 px-2.5 py-1 font-mono text-[11px] text-paper backdrop-blur" aria-live="polite"></span>
                 <span id="liveClock" class="absolute right-3 top-3 hidden rounded-full bg-ink/80 px-2.5 py-1 font-mono text-[12px] text-paper backdrop-blur">0:00 left</span>
 
                 <video id="liveSelf" autoplay playsinline muted
-                       class="absolute bottom-3 right-3 hidden aspect-[1088/624] w-[22%] min-w-[96px] rounded-lg border border-white/15 object-cover shadow-lg [transform:scaleX(-1)]"></video>
+                       class="absolute bottom-3 right-3 hidden aspect-video w-[22%] min-w-[96px] rounded-lg border border-white/15 object-cover shadow-lg [transform:scaleX(-1)]"></video>
             </div>
 
             <div id="liveControls" class="mt-3 hidden flex-col gap-3 sm:flex-row sm:items-center">

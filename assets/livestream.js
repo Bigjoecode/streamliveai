@@ -22,7 +22,58 @@ const ui = {
     prompt: $('livePrompt'), consent: $('liveConsent'), out: $('liveOut'), self: $('liveSelf'),
     placeholder: $('livePlaceholder'), status: $('liveStatus'), clock: $('liveClock'),
     controls: $('liveControls'), restyle: $('liveRestyle'), full: $('liveFull'), end: $('liveEnd'), msg: $('liveMessage'),
+    quality: $('liveQuality'),
 };
+
+/* ---------------------------------------------------------- diagnostics */
+// Decart's SDK reports connection quality every few seconds. We show the verdict
+// on the video, and send a compact summary to the server with each tick so the
+// cause of lag/flicker (network latency, upload bandwidth, loss, the computer's
+// CPU, a weak camera feed) can be read afterwards from storage/live-diag.log.
+const QUALITY_TEXT = { good: 'Good', fair: 'Fair', poor: 'Poor', critical: 'Very poor' };
+const QUALITY_DOT = { good: 'bg-reel', fair: 'bg-signal', poor: 'bg-tally', critical: 'bg-tally' };
+const LIMIT_TEXT = { bandwidth: 'upload speed', latency: 'network delay', loss: 'packet loss', stall: 'stalls', cpu: 'device CPU' };
+
+function showQuality(q) {
+    if (!ui.quality || !q) return;
+    const why = q.quality !== 'good' && LIMIT_TEXT[q.limitingFactor] ? ` · ${LIMIT_TEXT[q.limitingFactor]}` : '';
+    ui.quality.innerHTML = '';
+    const dot = document.createElement('span');
+    dot.className = `h-1.5 w-1.5 rounded-full ${QUALITY_DOT[q.quality] || 'bg-muted'}`;
+    const text = document.createElement('span');
+    text.textContent = q.warmingUp ? 'Connection: measuring…' : `Connection: ${QUALITY_TEXT[q.quality] || q.quality}${why}`;
+    ui.quality.append(dot, text);
+    ui.quality.classList.remove('hidden');
+    ui.quality.classList.add('flex');
+}
+
+const r1 = (n) => (typeof n === 'number' && isFinite(n) ? Math.round(n * 10) / 10 : null);
+
+function recordQuality(q) {
+    if (!live || !q || !q.metrics) return;
+    const m = q.metrics;
+    live.diag.samples.push({
+        t: Math.round((performance.now() - live.diag.t0) / 1000), q: q.quality, lim: q.limitingFactor, warm: q.warmingUp,
+        rtt: r1(m.rttMs), g2g: r1(m.g2gMs), fps: r1(m.fps), loss: r1(m.packetLoss), up: r1(m.availableUpstreamKbps),
+        jit: r1(m.upstreamJitterMs), drop: r1(m.g2gDropRatio),
+    });
+    if (m.ttffMs != null) live.diag.ttffMs = r1(m.ttffMs);
+    if (live.diag.samples.length > 40) live.diag.samples.shift();   // keep the latest ~2 minutes
+}
+
+function recordStats(s) {
+    if (!live || !s || !s.video) return;
+    const v = s.video;
+    live.diag.video = { w: v.frameWidth, h: v.frameHeight, fps: r1(v.framesPerSecond), kbps: Math.round((v.bitrate || 0) / 1000),
+        freezes: v.freezeCount, freezeSec: r1(v.totalFreezesDuration), lost: v.packetsLost, dropped: v.framesDropped,
+        jbMs: r1(v.avgJitterBufferMs), decodeMs: r1(v.avgDecodeTimeMs), decoder: v.decoderImplementation };
+}
+
+function diagPayload() {
+    if (!live || !live.diag) return '';
+    const s = JSON.stringify(live.diag);
+    return s.length > 7500 ? JSON.stringify({ ...live.diag, samples: live.diag.samples.slice(-15) }) : s;
+}
 
 let sdk = null;
 let live = null;   // { job, rt, stream, maxSeconds, generatingSince, generatedMs, ticker, clockTimer, ended }
@@ -130,6 +181,14 @@ ui.form.addEventListener('submit', async (ev) => {
     }
     ui.self.srcObject = stream;
     ui.self.classList.remove('hidden');
+    const camTrack = stream.getVideoTracks()[0];
+    const cam = camTrack && camTrack.getSettings ? camTrack.getSettings() : {};
+    const photoSize = await new Promise((res) => {
+        const img = new Image();
+        img.onload = () => { res({ w: img.naturalWidth, h: img.naturalHeight }); URL.revokeObjectURL(img.src); };
+        img.onerror = () => res({ w: 0, h: 0 });
+        img.src = URL.createObjectURL(file);
+    });
 
     // 2. Charge and get a token.
     ui.go.textContent = 'Starting session…';
@@ -140,7 +199,13 @@ ui.form.addEventListener('submit', async (ev) => {
         return say(data.error || 'Couldn\'t reach SleekAI. You haven\'t been charged.', 'error', !!data.buy || status === 402);
     }
 
-    live = { job: data.job, rt: null, stream, maxSeconds: data.maxSeconds, generatingSince: 0, generatedMs: 0, ended: false };
+    live = { job: data.job, rt: null, stream, maxSeconds: data.maxSeconds, generatingSince: 0, generatedMs: 0, ended: false,
+        diag: { t0: performance.now(), model: data.model, speed: data.speed || 'standard', ua: navigator.userAgent,
+                cores: navigator.hardwareConcurrency || null, mem: navigator.deviceMemory || null,
+                net: navigator.connection ? { type: navigator.connection.effectiveType, down: navigator.connection.downlink, rtt: navigator.connection.rtt } : null,
+                cam: { w: cam.width, h: cam.height, fps: r1(cam.frameRate), label: camTrack ? camTrack.label.slice(0, 60) : '' },
+                photo: { ...photoSize, kb: Math.round(file.size / 1024), type: file.type },
+                prompt: (ui.prompt.value.trim() || 'default').slice(0, 120), samples: [], video: null, ttffMs: null, events: [] } };
     root.dataset.job = String(data.job);
     setStatus('CONNECTING', 'wait');
     ui.clock.classList.remove('hidden');
@@ -175,6 +240,9 @@ ui.form.addEventListener('submit', async (ev) => {
             }
         });
         rt.on('error', (e) => finish('The stream hit an error: ' + ((e && e.message) || 'unknown') + '.', true));
+        rt.on('connectionQuality', (q) => { showQuality(q); recordQuality(q); });
+        rt.on('stats', recordStats);
+        rt.on('connectionChange', (state) => { if (live && live.diag.events.length < 30) live.diag.events.push([Math.round((performance.now() - live.diag.t0) / 1000), state]); });
         if (rt.getConnectionState && rt.getConnectionState() === 'generating' && !live.generatingSince) {
             live.generatingSince = performance.now();
             setStatus('LIVE', 'live');
@@ -191,7 +259,9 @@ ui.form.addEventListener('submit', async (ev) => {
     // 4. Keep the server informed, and count down.
     live.ticker = setInterval(async () => {
         if (!live || live.ended) return;
-        const r = await api({ action: 'tick', job: live.job, seconds: usedSeconds() }).catch(() => null);
+        live.ticks = (live.ticks || 0) + 1;
+        const diag = live.ticks % 6 === 0 ? diagPayload() : '';   // every ~30 s; the full summary also goes with 'end'
+        const r = await api({ action: 'tick', job: live.job, seconds: usedSeconds(), diag }).catch(() => null);
         if (r && r.data && r.data.ended) finish('This session was ended elsewhere.');
     }, TICK_MS);
     live.clockTimer = setInterval(() => {
@@ -212,7 +282,9 @@ async function finish(reason, isError = false) {
     clearInterval(live.clockTimer);
 
     const seconds = usedSeconds();
+    const diag = diagPayload();
     try { live.rt && live.rt.disconnect(); } catch (_) { /* already closed */ }
+    if (ui.quality) { ui.quality.classList.add('hidden'); ui.quality.classList.remove('flex'); }
     stopCamera(live.stream);
     ui.out.srcObject = null;
     ui.placeholder.classList.remove('hidden');
@@ -225,7 +297,7 @@ async function finish(reason, isError = false) {
     ui.form.classList.remove('pointer-events-none', 'opacity-60');
     resetForm();
 
-    const { data } = await api({ action: 'end', job: live.job, seconds }, true).catch(() => ({ data: {} }));
+    const { data } = await api({ action: 'end', job: live.job, seconds, diag }, true).catch(() => ({ data: {} }));
     say((reason ? reason + ' ' : '') + (data.message || 'Session ended.'), isError && data.status === 'failed' ? 'error' : 'success');
 
     const again = document.createElement('button');
@@ -276,6 +348,7 @@ window.addEventListener('pagehide', () => {
     body.append('action', 'end');
     body.append('job', String(live.job));
     body.append('seconds', String(usedSeconds()));
+    body.append('diag', diagPayload());
     navigator.sendBeacon(root.dataset.api, body);
     try { live.rt && live.rt.disconnect(); } catch (_) { /* closing anyway */ }
 });
