@@ -94,7 +94,7 @@ function sleek_live_active(int $userId): ?array
 /**
  * Charge for a session and get a token to open it.
  *
- * @return array{job: int, token: string, model: string, max_seconds: int}
+ * @return array{job: int, token: string, model: string, speed: string, max_seconds: int}
  * @throws SleekInsufficientCredits|SleekLiveBusy|SleekProviderError
  */
 function sleek_live_start(int $userId, int $minutes, int $consentAt): array
@@ -124,7 +124,17 @@ function sleek_live_start(int $userId, int $minutes, int $consentAt): array
         throw $e instanceof SleekProviderError ? $e : new SleekProviderError($e->getMessage(), 0, $e);
     }
 
-    return ['job' => $jobId, 'token' => $tok['token'], 'model' => $cfg['model'], 'max_seconds' => $seconds];
+    return ['job' => $jobId, 'token' => $tok['token'], 'model' => $cfg['model'], 'speed' => sleek_live_speed(), 'max_seconds' => $seconds];
+}
+
+/**
+ * Decart speed tier, set at /admin-providers: 'standard', or 'fast' — lower latency
+ * and smoother motion at twice Decart's per-second price (Lucy 2.5 supports it).
+ */
+function sleek_live_speed(): string
+{
+    require_once __DIR__ . '/settings.php';
+    return sleek_setting('live_speed', 'standard') === 'fast' ? 'fast' : 'standard';
 }
 
 /**

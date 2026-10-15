@@ -156,6 +156,11 @@ if (sleek_is_post()) {
                 ? "Test email sent to {$to}. If it isn't in the inbox within a minute, check spam."
                 : 'Test email failed: ' . (sleek_mail_last_error() ?: 'see storage/mail-error.log');
         }
+    } elseif ($action === 'save_live') {
+        require_once __DIR__ . '/inc/settings.php';
+        $speed = ($_POST['live_speed'] ?? '') === 'fast' ? 'fast' : 'standard';
+        sleek_setting_set('live_speed', $speed);
+        sleek_redirect('admin-providers?saved=live');
     } elseif ($action === 'save_packs') {
         // Validate every pack first; save all or nothing.
         $in = is_array($_POST['packs'] ?? null) ? $_POST['packs'] : [];
@@ -222,6 +227,7 @@ if ($notice === null && ($flash = sleek_flash_take())) {
 if (($_GET['keys'] ?? '') === 'saved') $notice = 'Provider settings saved. Existing values stay hidden.';
 if (($_GET['saved'] ?? '') === 'packs') $notice = 'Prices saved. The pricing page, home page and billing page show them now.';
 if (($_GET['saved'] ?? '') === 'site') $notice = 'Community and notification settings saved.';
+if (($_GET['saved'] ?? '') === 'live') $notice = 'Livestream speed saved. New sessions use it.';
 if (($_GET['saved'] ?? '') === 'mail') $notice = 'Email settings saved. Send a test below to confirm they work.';
 $mailCfg = sleek_config('mail');
 $mailReady = sleek_mail_configured();
@@ -546,7 +552,16 @@ admin_layout_open($titles[$adminView], $admin, $notice, $noticeBad, $adminView);
 </section>
 <?php endif; ?>
 
-<?php if ($adminView === 'providers'): ?>
+<?php if ($adminView === 'providers'): require_once __DIR__ . '/inc/livestream.php'; $liveSpeed = sleek_live_speed(); ?>
+<section class="card">
+    <h3>Livestream</h3>
+    <p class="muted">Model: <strong><?= e((string) sleek_config('decart')['model']) ?></strong> (Decart). Fast mode cuts latency so the stream follows movement more tightly, but Decart bills it at <strong>2×</strong> the standard per-second rate — check your Decart balance and your Livestream credit price before turning it on.</p>
+    <form method="post" action="admin-providers" class="form" style="margin-top:8px"><?= csrf_field() ?><input type="hidden" name="action" value="save_live">
+        <label class="check"><input type="radio" name="live_speed" value="standard"<?= $liveSpeed === 'standard' ? ' checked' : '' ?>> Standard</label>
+        <label class="check"><input type="radio" name="live_speed" value="fast"<?= $liveSpeed === 'fast' ? ' checked' : '' ?>> Fast — lowest latency (2× Decart cost)</label>
+        <div class="actions"><button>Save</button></div>
+    </form>
+</section>
 <section class="stats" aria-label="Connection status">
     <?php foreach ($providers as $name => $connected): ?>
         <div class="stat"><div class="label"><?= e($name) ?></div><div class="value" style="font-size:16px;color:<?= $connected ? '#8fe0aa' : 'var(--muted)' ?>"><?= $connected ? '✓ Configured' : 'Keys missing' ?></div></div>

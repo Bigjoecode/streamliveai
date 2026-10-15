@@ -103,6 +103,7 @@ $minCost = min($cfg['session_minutes']) * 60 * $rate;
                     <span id="livePhotoDot" class="empty-dot shrink-0" aria-hidden="true"><i></i></span>
                     <span>
                         <span class="block text-[14px] text-paper" data-drop-label>Choose a clear, front-facing photo</span>
+                        <span class="mt-1 block text-[12.5px] text-muted">Best results: sharp, well lit, head and shoulders like your camera shot, at least 512×512.</span>
                         <span class="mt-0.5 block text-[12px] text-muted">JPEG, PNG or WebP · at least 512×512 · under 5 MB</span>
                     </span>
                 </label>

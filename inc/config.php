@@ -103,7 +103,10 @@ return [
         'api_key' => '',
 
         'api_base'    => 'https://api.decart.ai',
-        'model'       => 'lucy-2.1',       // Livestream: Decart's documented model for reference-image character swap
+        // Livestream. Lucy 2.5 is Decart's recommended realtime model (720p; better
+        // likeness to the reference photo and tracking of face, lips and body than 2.1).
+        // Pinned rather than 'lucy-latest' so it can't change underneath the site.
+        'model'       => 'lucy-2.5',
         'image_model' => 'lucy-image-2',   // AI Image Edit: POST /v1/generate/{image_model}
 
         'credits_per_second'     => 2,

@@ -7,8 +7,10 @@
  */
 
 // Pinned: a new SDK version must be tested before the page picks it up.
-const SDK_URL = 'https://cdn.jsdelivr.net/npm/@decartai/sdk@0.2.1/+esm';
-const DEFAULT_LOOK = 'Transform into the person in this photo, keeping my movements and expressions';
+const SDK_URL = 'https://cdn.jsdelivr.net/npm/@decartai/sdk@0.2.8/+esm';
+// Asks for a photoreal likeness that follows the camera closely; the reference photo carries the identity.
+const DEFAULT_LOOK = 'Replace me with the person in the reference photo: same face, hair and skin tone, photorealistic, '
+    + 'natural lighting and skin texture. Follow my exact head movements, facial expressions, lip movements and gestures.';
 const TICK_MS = 5000;
 const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const PHOTO_MAX = 5 * 1024 * 1024;
@@ -113,7 +115,7 @@ ui.form.addEventListener('submit', async (ev) => {
     ui.msg.classList.add('hidden');
 
     // 1. Camera first — nothing has been charged yet.
-    const model = sdk.models.realtime(root.dataset.model || 'lucy-2.1');
+    const model = sdk.models.realtime(root.dataset.model || 'lucy-2.5');
     let stream;
     try {
         stream = await navigator.mediaDevices.getUserMedia({
@@ -149,6 +151,7 @@ ui.form.addEventListener('submit', async (ev) => {
         const client = sdk.createDecartClient({ apiKey: data.token });
         const rt = await client.realtime.connect(stream, {
             model: sdk.models.realtime(data.model),
+            ...(data.speed === 'fast' ? { speed: 'fast' } : {}),
             onRemoteStream: (remote) => {
                 ui.out.srcObject = remote;
                 ui.placeholder.classList.add('hidden');

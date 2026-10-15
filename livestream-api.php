@@ -65,7 +65,7 @@ switch ($_POST['action'] ?? '') {
             $reply(502, ['ok' => false, 'error' => 'Livestream couldn\'t start right now. Your credits were refunded — please try again.']);
         }
 
-        $reply(200, ['ok' => true, 'job' => $s['job'], 'token' => $s['token'], 'model' => $s['model'], 'maxSeconds' => $s['max_seconds']]);
+        $reply(200, ['ok' => true, 'job' => $s['job'], 'token' => $s['token'], 'model' => $s['model'], 'speed' => $s['speed'], 'maxSeconds' => $s['max_seconds']]);
 
     case 'tick':
         $s = sleek_live_report($int('job'), $uid, $int('seconds'));
