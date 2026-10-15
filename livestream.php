@@ -166,5 +166,5 @@ $minCost = min($cfg['session_minutes']) * 60 * $rate;
     <?php endif; ?>
 </main>
 
-<script type="module" src="assets/livestream.js"></script>
+<script type="module" src="assets/livestream.js?v=<?= (int) @filemtime(__DIR__ . '/assets/livestream.js') ?>"></script>
 <?php require __DIR__ . '/inc/dashboard-foot.php'; ?>
