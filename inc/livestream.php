@@ -124,6 +124,13 @@ function sleek_live_start(int $userId, int $minutes, int $consentAt): array
         throw $e instanceof SleekProviderError ? $e : new SleekProviderError($e->getMessage(), 0, $e);
     }
 
+    require_once __DIR__ . '/telegram.php';
+    $who = sleek_alert_user($userId);
+    sleek_alert('livestream', 'Livestream started', [
+        'Account' => $who['name'] . ' <' . $who['email'] . '>',
+        'Session' => "{$minutes} min, " . number_format($reserved) . ' credits reserved',
+        'Model'   => $cfg['model'] . (sleek_live_speed() === 'fast' ? ' (fast)' : ''),
+    ], 'admin-user?id=' . $userId);
     return ['job' => $jobId, 'token' => $tok['token'], 'model' => $cfg['model'], 'speed' => sleek_live_speed(), 'max_seconds' => $seconds];
 }
 
@@ -256,6 +263,15 @@ function sleek_live_settle(int $jobId, bool $silent = false): ?array
     sleek_jobs_log("livestream job #{$jobId} settled: used {$used}s, charged {$charge}, refunded {$refund}"
         . ($silent ? ' (swept' . ($s['reported'] ? '' : ', never reported') . ')' : ''));
 
+    require_once __DIR__ . '/telegram.php';
+    $who = sleek_alert_user((int) $s['user_id']);
+    sleek_alert('livestream', $failed ? 'Livestream didn\'t connect — refunded' : 'Livestream ended', [
+        'Account'  => $who['name'] . ' <' . $who['email'] . '>',
+        'Streamed' => sleek_duration_label($used),
+        'Charged'  => number_format($charge) . ' credits',
+        'Refunded' => $refund > 0 ? number_format($refund) . ' credits' : '',
+        'Note'     => $silent ? 'Page closed without ending — settled automatically' : '',
+    ], 'admin-user?id=' . $s['user_id']);
     return ['status' => $failed ? 'failed' : 'completed', 'used' => $used, 'charged' => $charge, 'refunded' => $refund];
 }
 

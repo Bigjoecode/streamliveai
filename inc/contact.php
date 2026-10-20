@@ -40,6 +40,13 @@ function sleek_contact_submit(string $name, string $email, string $message, stri
        ->execute([$name, $email, $message, $ip, $userId, time()]);
 
     sleek_contact_notify($name, $email, $message);
+    require_once __DIR__ . '/telegram.php';
+    sleek_alert('contact', 'New contact / inquiry', [
+        'Name'    => $name,
+        'Email'   => $email,
+        'Account' => $userId ? '#' . $userId : 'visitor',
+        'Message' => $message,
+    ], 'admin-messages');
     return [];
 }
 

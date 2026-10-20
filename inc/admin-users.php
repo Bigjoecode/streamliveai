@@ -113,6 +113,11 @@ function sleek_admin_create_user(string $name, string $email, string $password, 
         $link = $password === '' ? sleek_issue_reset_link($id, $ttl) : null;
         sleek_send_welcome_email($id, $link, intdiv($ttl, 60));
     }
+    require_once __DIR__ . '/telegram.php';
+    sleek_alert('admin', 'Account created by admin', [
+        'Name' => $name, 'Email' => $email, 'Role' => SLEEK_ADMIN_ROLES[$role] ?? $role,
+        'Starting credits' => $credits > 0 ? number_format($credits) : '',
+    ], 'admin-user?id=' . $id);
     return ['errors' => [], 'id' => $id];
 }
 
@@ -136,6 +141,10 @@ function sleek_admin_update_user(int $id, string $name, string $email, string $r
         $db->prepare('UPDATE users SET name = ?, email = ? WHERE id = ?')->execute([$name, $email, $id]);
     } else {
         $db->prepare('UPDATE users SET name = ?, email = ?, role = ? WHERE id = ?')->execute([$name, $email, $role, $id]);
+        if ($role !== $user['role']) {
+            require_once __DIR__ . '/telegram.php';
+            sleek_alert('admin', 'Role changed', ['Account' => "{$name} <{$email}>", 'From' => $user['role'], 'To' => $role], 'admin-user?id=' . $id);
+        }
     }
     if ($newPassword !== '') {
         $db->prepare('UPDATE users SET password_hash = ? WHERE id = ?')->execute([password_hash($newPassword, PASSWORD_DEFAULT), $id]);
@@ -162,6 +171,15 @@ function sleek_admin_adjust_credits(int $id, int $delta, string $reason, array $
         return ['delta' => 'They don\'t have that many credits to remove.'];
     }
     sleek_payments_log_admin("CREDITS #{$id} {$delta} by admin #{$admin['id']}: {$reason}");
+    require_once __DIR__ . '/telegram.php';
+    $u = sleek_admin_find_user($id);
+    sleek_alert('admin', $delta > 0 ? 'Credits added by admin' : 'Credits removed by admin', [
+        'Account' => ($u['name'] ?? '#' . $id) . ' <' . ($u['email'] ?? '') . '>',
+        'Change'  => ($delta > 0 ? '+' : '') . number_format($delta),
+        'Balance' => number_format((int) ($u['credits'] ?? 0)),
+        'Reason'  => $reason,
+        'By'      => $admin['email'],
+    ], 'admin-user?id=' . $id);
     return [];
 }
 
@@ -175,6 +193,8 @@ function sleek_admin_delete_user(int $id, array $admin): array
 
     sleek_db()->prepare('DELETE FROM users WHERE id = ?')->execute([$id]);
     sleek_payments_log_admin("DELETED account #{$id} <{$user['email']}> by admin #{$admin['id']}");
+    require_once __DIR__ . '/telegram.php';
+    sleek_alert('admin', 'Account deleted', ['Account' => "{$user['name']} <{$user['email']}>", 'Credits lost' => number_format((int) $user['credits']), 'By' => $admin['email']], 'admin-accounts');
     return [];
 }
 

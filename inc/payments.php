@@ -158,6 +158,13 @@ function sleek_fulfil_payment(string $reference, array $tx): string
            ->execute([mb_substr('Amount/currency mismatch: got ' . ($tx['amount_kobo'] ?? '?') . ' ' . ($tx['currency'] ?? '?'), 0, 255), $reference]);
         sleek_payments_log("MISMATCH {$reference}: expected {$payment['amount_kobo']} {$payment['currency']}, got "
             . json_encode(['amount_kobo' => $tx['amount_kobo'] ?? null, 'currency' => $tx['currency'] ?? null]));
+        require_once __DIR__ . '/telegram.php';
+        sleek_alert('payment_bad', 'Payment amount mismatch — not credited', [
+            'Customer'  => $payment['buyer_name'],
+            'Reference' => $reference,
+            'Expected'  => html_entity_decode(sleek_money((int) $payment['amount_kobo'], (string) $payment['currency']), ENT_QUOTES, 'UTF-8'),
+            'Provider reported' => ($tx['amount_kobo'] ?? '?') . ' (minor units) ' . ($tx['currency'] ?? '?'),
+        ], 'admin-user?id=' . $payment['user_id']);
         return 'mismatch';
     }
 
@@ -183,6 +190,15 @@ function sleek_fulfil_payment(string $reference, array $tx): string
         sleek_referral_bonus($payment);
 
         $db->commit();
+        require_once __DIR__ . '/telegram.php';
+        [$amt, $cur] = [(int) $payment['amount_kobo'], (string) $payment['currency']];
+        sleek_alert('payment', 'Payment received', [
+            'Customer'  => $payment['buyer_name'],
+            'Pack'      => ($pack['name'] ?? $payment['pack_key']) . ' — ' . number_format((int) $payment['credits']) . ' credits',
+            'Amount'    => html_entity_decode(sleek_money($amt, $cur), ENT_QUOTES, 'UTF-8'),
+            'Method'    => $payment['provider'] === 'nowpayments' ? 'Crypto (NOWPayments)' : 'Naira (Flutterwave)',
+            'Reference' => $reference,
+        ], 'admin-user?id=' . $payment['user_id']);
         return 'credited';
     } catch (Throwable $e) {
         if ($db->inTransaction()) $db->rollBack();

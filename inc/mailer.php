@@ -63,6 +63,8 @@ function sleek_send_mail(string $toEmail, string $toName, string $subject, strin
         sleek_storage_append('mail-error.log', sprintf(
             "[%s] to %s — %s\n", date('Y-m-d H:i:s'), $toEmail, $mail->ErrorInfo ?: $e->getMessage()
         ));
+        require_once __DIR__ . '/telegram.php';
+        sleek_alert('mail_failed', 'Email failed to send', ['To' => $toEmail, 'Subject' => $subject, 'Error' => $mail->ErrorInfo ?: $e->getMessage()], 'admin-email');
         return false;
     }
 }

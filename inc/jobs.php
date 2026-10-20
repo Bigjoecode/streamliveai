@@ -207,7 +207,25 @@ function sleek_job_complete(int $jobId, string $bytes, string $mime): bool
         sleek_jobs_log("job #{$jobId} finished after being swept; output discarded");
         return false;
     }
+    sleek_job_alert($jobId, 'job', 'Job completed');
     return true;
+}
+
+/** Telegram alert for a finished or failed tool job. */
+function sleek_job_alert(int $jobId, string $type, string $headline, string $why = ''): void
+{
+    require_once __DIR__ . '/telegram.php';
+    $st = sleek_db()->prepare('SELECT j.user_id, j.tool, j.title, j.credits, u.name, u.email FROM jobs j JOIN users u ON u.id = j.user_id WHERE j.id = ?');
+    $st->execute([$jobId]);
+    $j = $st->fetch();
+    if (!$j || $j['tool'] === 'livestream') return;   // livestream has its own alerts
+    sleek_alert($type, $headline, [
+        'Tool'    => sleek_tool($j['tool'])['name'] ?? $j['tool'],
+        'Job'     => '#' . $jobId . ' — ' . $j['title'],
+        'Account' => $j['name'] . ' <' . $j['email'] . '>',
+        'Credits' => number_format((int) $j['credits']) . ($type === 'job_failed' ? ' (refunded)' : ''),
+        'Reason'  => $why,
+    ], 'admin-user?id=' . $j['user_id']);
 }
 
 /** Mark the job failed and refund it. Safe to call twice; only the first refunds. */
@@ -225,8 +243,10 @@ function sleek_job_fail(int $jobId, string $publicError, string $detail = ''): v
             $job = $stmt->fetch();
             sleek_credit((int) $job['user_id'], (int) $job['credits'], 'job_refund', "job:{$jobId}",
                 'Refund — ' . (sleek_tool($job['tool'])['name'] ?? $job['tool']));
+            $failedNow = true;
         }
         $db->commit();
+        if (!empty($failedNow)) sleek_job_alert($jobId, 'job_failed', 'Job failed — credits refunded', $publicError . ($detail !== '' ? ' | ' . $detail : ''));
     } catch (Throwable $e) {
         if ($db->inTransaction()) $db->rollBack();
         throw $e;

@@ -74,6 +74,13 @@ return [
         'payment_options' => 'card,banktransfer,ussd',
     ],
 
+    'telegram' => [
+        // Admin alerts. Paste the token from @BotFather at /admin-community (it's
+        // stored privately in storage/provider-secrets.json, not here).
+        'bot_token' => '',
+        'api_base'  => 'https://api.telegram.org',
+    ],
+
     'nowpayments' => [
         // Crypto. From account.nowpayments.io → Settings → Payments → API keys.
         'api_key' => '',

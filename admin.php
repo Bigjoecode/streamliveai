@@ -5,6 +5,7 @@ require __DIR__ . '/inc/contact.php';
 require_once __DIR__ . '/inc/mailer.php';
 require __DIR__ . '/inc/admin-users.php';
 require __DIR__ . '/inc/admin-layout.php';
+require_once __DIR__ . '/inc/telegram.php';
 $admin = require_super_admin();
 
 // Which admin page this request renders. The admin-*.php entry files set it;
@@ -53,6 +54,7 @@ $db = sleek_db();
 $notice = null;
 $noticeBad = false;
 $createErrors = [];
+$tgFound = null;   // groups found by "Find my group", shown once
 $createOld = ['name' => '', 'email' => '', 'role' => 'user', 'credits' => '0', 'welcome' => true];
 
 if (sleek_is_post()) {
@@ -156,6 +158,55 @@ if (sleek_is_post()) {
                 ? "Test email sent to {$to}. If it isn't in the inbox within a minute, check spam."
                 : 'Test email failed: ' . (sleek_mail_last_error() ?: 'see storage/mail-error.log');
         }
+    } elseif ($action === 'save_telegram' || $action === 'tg_discover' || $action === 'tg_test') {
+        $tokenIn = trim(is_string($_POST['tg_token'] ?? null) ? $_POST['tg_token'] : '');
+        $chatIn  = trim(is_string($_POST['tg_chat'] ?? null) ? $_POST['tg_chat'] : '');
+        $token   = $tokenIn !== '' ? $tokenIn : sleek_telegram_token();
+        if ($tokenIn !== '' && !preg_match('/^\d{5,15}:[A-Za-z0-9_-]{30,80}$/', $tokenIn)) {
+            $notice = 'That doesn\'t look like a bot token. Copy the whole token @BotFather gave you, e.g. 123456789:AAE…';
+        } elseif ($chatIn !== '' && !preg_match('/^(-?\d{5,20}|@[A-Za-z0-9_]{5,64})$/', $chatIn)) {
+            $notice = 'The group ID should be a number like -1001234567890 (use "Find my group"), or @channelname for a public channel.';
+        } elseif (!sleek_admin_secure_channel()) {
+            $notice = 'Telegram settings can only be saved over HTTPS.';
+        } elseif ($action === 'tg_discover') {
+            if ($token === '') {
+                $notice = 'Paste the bot token first.';
+            } else {
+                [$tgFound, $err] = sleek_telegram_discover($token);
+                if ($err !== '') { $notice = 'Telegram: ' . $err; $tgFound = null; }
+                elseif (!$tgFound) $notice = 'No groups found yet. Add the bot to your group, send any message in the group (e.g. "hi"), then press Find my group again.';
+                else { $notice = 'Found ' . count($tgFound) . ' group' . (count($tgFound) === 1 ? '' : 's') . ' — pick one below and save.'; $noticeBad = false; }
+            }
+        } else {
+            // Save (and, for "test", save then send a sample alert).
+            [$bot, $err] = $token !== '' ? sleek_telegram_whoami($token) : [null, ''];
+            if ($token !== '' && $bot === null) {
+                $notice = 'Telegram rejected the bot token: ' . $err;
+            } else {
+                $saved = sleek_admin_secrets_read();
+                if (isset($_POST['tg_token_clear'])) $saved['telegram']['bot_token'] = '';
+                elseif ($tokenIn !== '') $saved['telegram']['bot_token'] = $tokenIn;
+                if (!sleek_admin_secrets_write($saved)) {
+                    $notice = 'Could not write the private settings file.';
+                } else {
+                    sleek_setting_set('telegram_chat_id', $chatIn);
+                    $on = is_array($_POST['tg_alerts'] ?? null) ? $_POST['tg_alerts'] : [];
+                    sleek_setting_set('telegram_alerts', array_map(fn($k) => isset($on[$k]), array_combine(array_keys(SLEEK_ALERTS), array_keys(SLEEK_ALERTS))));
+                    if ($action === 'tg_test') {
+                        $useToken = isset($_POST['tg_token_clear']) ? '' : $token;
+                        [$ok, $err] = sleek_telegram_send(sleek_alert_format('admin', 'Test alert', [
+                            'From'   => (string) sleek_config('brand_name') . ' admin',
+                            'Sent by' => $admin['email'],
+                            'Status' => 'Telegram alerts are working',
+                        ], 'admin'), $chatIn, $useToken);
+                        $notice = $ok ? 'Test alert sent — check the group.' : 'Saved, but the test failed: ' . $err;
+                        $noticeBad = !$ok;
+                    } else {
+                        sleek_redirect('admin-community?saved=telegram' . ($bot ? '&bot=' . rawurlencode($bot) : ''));
+                    }
+                }
+            }
+        }
     } elseif ($action === 'save_live') {
         require_once __DIR__ . '/inc/settings.php';
         $speed = ($_POST['live_speed'] ?? '') === 'fast' ? 'fast' : 'standard';
@@ -217,7 +268,7 @@ if (sleek_is_post()) {
 }
 
 if (sleek_is_post() && $notice !== null && !$noticeBad) {
-    $noticeBad = !preg_match('/^(Test email sent|User role updated|Initial super admin verified)/', $notice);
+    $noticeBad = !preg_match('/^(Test email sent|Test alert sent|Found \d+ group|User role updated|Initial super admin verified)/', $notice);
 }
 if (($_GET['done'] ?? '') === 'deleted') $notice = 'Account deleted.';
 if ($notice === null && ($flash = sleek_flash_take())) {
@@ -227,6 +278,7 @@ if ($notice === null && ($flash = sleek_flash_take())) {
 if (($_GET['keys'] ?? '') === 'saved') $notice = 'Provider settings saved. Existing values stay hidden.';
 if (($_GET['saved'] ?? '') === 'packs') $notice = 'Prices saved. The pricing page, home page and billing page show them now.';
 if (($_GET['saved'] ?? '') === 'site') $notice = 'Community and notification settings saved.';
+if (($_GET['saved'] ?? '') === 'telegram') $notice = 'Telegram alerts saved' . (is_string($_GET['bot'] ?? null) && preg_match('/^@\w{3,64}$/', $_GET['bot']) ? ' — bot ' . $_GET['bot'] . ' is connected' : '') . '. Use "Send test alert" to check the group.';
 if (($_GET['saved'] ?? '') === 'live') $notice = 'Livestream speed saved. New sessions use it.';
 if (($_GET['saved'] ?? '') === 'mail') $notice = 'Email settings saved. Send a test below to confirm they work.';
 $mailCfg = sleek_config('mail');
@@ -301,6 +353,7 @@ if ($adminView === 'overview') {
         ['Naira payments (Flutterwave) connected', $providers['Flutterwave'], 'admin-providers', 'Connect'],
         ['Crypto payments (NOWPayments) connected', $providers['NOWPayments (crypto)'], 'admin-providers', 'Connect'],
         ['Telegram channel added', $telegramUrl !== '', 'admin-community', 'Add'],
+        ['Telegram admin alerts connected', sleek_telegram_ready(), 'admin-community', 'Connect'],
         ['Pack prices reviewed', $packsSaved, 'admin-pricing', 'Review'],
     ];
     $todo = count(array_filter($checklist, fn($c) => !$c[1]));
@@ -523,6 +576,41 @@ admin_layout_open($titles[$adminView], $admin, $notice, $noticeBad, $adminView);
         <label><span class="l">Telegram channel</span><input name="telegram_url" placeholder="https://t.me/yourchannel or @yourchannel" value="<?= e($telegramUrl) ?>"><small>Shown in the footer of every public page, on the Contact page, in the dashboard sidebar and in welcome emails. Until set, the dashboard button opens the Contact page.</small></label>
         <label><span class="l">Email new contact messages to (optional)</span><input type="email" name="contact_notify_email" placeholder="you@example.com" value="<?= e($notifyEmail) ?>"><small>Messages are always kept under Messages; this also emails each one.</small></label>
         <div class="actions"><button>Save</button></div>
+    </form>
+</section>
+<?php endif; ?>
+
+<?php if ($adminView === 'community'): $tgChat = sleek_telegram_chat(); $tgHasToken = sleek_telegram_token() !== ''; ?>
+<section class="card">
+    <h3>Telegram admin alerts</h3>
+    <p class="muted">Every sign-up, payment, message, job and admin action posted to your Telegram group, as it happens. Status: <strong><?= sleek_telegram_ready() ? 'connected' : 'not connected' ?></strong>.</p>
+    <ol class="muted" style="margin:8px 0 0;padding-left:20px">
+        <li>In Telegram, message <strong>@BotFather</strong> → <code>/newbot</code> → copy the token it gives you.</li>
+        <li>Add your new bot to your alerts group (as an admin, so it can post), then send any message in the group, e.g. “hi”.</li>
+        <li>Paste the token below and press <strong>Find my group</strong>, pick the group, save, then <strong>Send test alert</strong>.</li>
+    </ol>
+    <form method="post" action="admin-community" class="form" autocomplete="off"><?= csrf_field() ?>
+        <div class="form-grid two">
+            <label><span class="l">Bot token</span><input type="password" name="tg_token" autocomplete="new-password" placeholder="<?= $tgHasToken ? 'Saved — leave blank to keep it' : '123456789:AAE…' ?>"><span class="check"><input type="checkbox" name="tg_token_clear" value="1"> Clear saved token</span></label>
+            <label><span class="l">Group ID</span><input name="tg_chat" placeholder="-1001234567890" value="<?= e($tgChat) ?>"><small>Use “Find my group”, or @channelname for a public channel.</small></label>
+        </div>
+        <?php if ($tgFound): ?>
+            <fieldset class="pack"><legend>Groups the bot can see — pick one</legend>
+                <?php foreach ($tgFound as $c): ?>
+                    <label class="check"><input type="radio" name="tg_pick" value="<?= e($c['id']) ?>" onclick="this.form.tg_chat.value=this.value"> <?= e($c['title']) ?> <small>(<?= e($c['type']) ?>, <?= e($c['id']) ?>)</small></label>
+                <?php endforeach; ?>
+            </fieldset>
+        <?php endif; ?>
+        <fieldset class="pack"><legend>Send alerts for</legend>
+            <?php foreach (SLEEK_ALERTS as $key => [$label, $emoji]): ?>
+                <label class="check"><input type="checkbox" name="tg_alerts[<?= e($key) ?>]" value="1"<?= sleek_alert_enabled($key) ? ' checked' : '' ?>> <?= $emoji ?> <?= e($label) ?></label>
+            <?php endforeach; ?>
+        </fieldset>
+        <div class="actions">
+            <button name="action" value="save_telegram">Save</button>
+            <button class="ghost" name="action" value="tg_discover">Find my group</button>
+            <button class="ghost" name="action" value="tg_test">Send test alert</button>
+        </div>
     </form>
 </section>
 <?php endif; ?>

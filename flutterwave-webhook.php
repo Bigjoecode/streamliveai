@@ -20,6 +20,11 @@ $raw = (string) file_get_contents('php://input');
 
 if (!sleek_flutterwave_webhook_valid((string) ($_SERVER['HTTP_VERIF_HASH'] ?? ''))) {
     sleek_payments_log('FLW WEBHOOK rejected: bad or missing verif-hash from ' . ($_SERVER['REMOTE_ADDR'] ?? '?'));
+    require_once __DIR__ . '/inc/telegram.php';
+    sleek_alert('payment_bad', 'Rejected Flutterwave webhook', [
+        'Why'  => 'Missing or wrong secret hash — a forgery attempt, or the hash in the Flutterwave dashboard doesn\'t match Admin → Providers',
+        'From' => $_SERVER['REMOTE_ADDR'] ?? '?',
+    ], 'admin-providers');
     http_response_code(401);
     exit;
 }

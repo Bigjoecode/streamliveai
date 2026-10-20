@@ -25,6 +25,12 @@ if (!sleek_nowpayments_signature_valid($raw, $sig)) {
         . (is_array($peek) ? ' (order ' . preg_replace('/[^A-Za-z0-9-]/', '', (string) ($peek['order_id'] ?? '?'))
             . ', payment ' . preg_replace('/\D/', '', (string) ($peek['payment_id'] ?? '')) . ', status '
             . preg_replace('/[^a-z_]/', '', (string) ($peek['payment_status'] ?? '?')) . ')' : ''));
+    require_once __DIR__ . '/inc/telegram.php';
+    sleek_alert('payment_bad', 'Rejected crypto (NOWPayments) notification', [
+        'Why'   => 'Bad or missing signature — a forgery attempt, or the IPN secret in Admin → Providers doesn\'t match NOWPayments',
+        'Order' => is_array($peek) ? (string) ($peek['order_id'] ?? '') : '',
+        'From'  => $_SERVER['REMOTE_ADDR'] ?? '?',
+    ], 'admin-providers');
     http_response_code(401);
     exit;
 }

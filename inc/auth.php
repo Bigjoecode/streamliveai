@@ -352,6 +352,12 @@ function sleek_register(string $name, string $email, string $password, bool $ter
                 require_once __DIR__ . '/emails.php';
                 sleek_send_welcome_email($userId);
             });
+            require_once __DIR__ . '/telegram.php';
+            sleek_alert('signup', 'New registration', [
+                'Name'        => $name,
+                'Email'       => $email,
+                'Referred by' => $referredBy ? sleek_alert_user($referredBy)['name'] : '',
+            ], 'admin-user?id=' . $userId);
             return ['ok' => true, 'errors' => []];
         } catch (PDOException $e) {
             if (!sleek_is_duplicate($e)) throw $e;
@@ -410,6 +416,8 @@ function sleek_request_password_reset(string $email): void
     [$html, $text] = sleek_reset_email($user['name'], $link, intdiv($auth['reset_ttl_seconds'], 60));
 
     sleek_send_mail($user['email'], $user['name'], 'Reset your StreamLive AI password', $html, $text);
+    require_once __DIR__ . '/telegram.php';
+    sleek_alert('reset', 'Password reset requested', ['Account' => $user['name'] . ' <' . $user['email'] . '>'], 'admin-user?id=' . $user['id']);
 }
 
 /**
