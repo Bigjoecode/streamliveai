@@ -174,7 +174,11 @@ if (sleek_is_post()) {
             } else {
                 [$tgFound, $err] = sleek_telegram_discover($token);
                 if ($err !== '') { $notice = 'Telegram: ' . $err; $tgFound = null; }
-                elseif (!$tgFound) $notice = 'No groups found yet. Add the bot to your group, send any message in the group (e.g. "hi"), then press Find my group again.';
+                elseif (!$tgFound) {
+                    [$botName] = sleek_telegram_whoami($token);
+                    $cmd = '/start' . ($botName ? $botName : '');
+                    $notice = "No groups found yet. In your Telegram group, send {$cmd} (a plain \"hi\" isn't delivered to bots), then press Find my group again within 24 hours. If it still finds nothing, remove the bot from the group and add it back.";
+                }
                 else { $notice = 'Found ' . count($tgFound) . ' group' . (count($tgFound) === 1 ? '' : 's') . ' — pick one below and save.'; $noticeBad = false; }
             }
         } else {
@@ -586,7 +590,7 @@ admin_layout_open($titles[$adminView], $admin, $notice, $noticeBad, $adminView);
     <p class="muted">Every sign-up, payment, message, job and admin action posted to your Telegram group, as it happens. Status: <strong><?= sleek_telegram_ready() ? 'connected' : 'not connected' ?></strong>.</p>
     <ol class="muted" style="margin:8px 0 0;padding-left:20px">
         <li>In Telegram, message <strong>@BotFather</strong> → <code>/newbot</code> → copy the token it gives you.</li>
-        <li>Add your new bot to your alerts group (as an admin, so it can post), then send any message in the group, e.g. “hi”.</li>
+        <li>Add your new bot to your alerts group and make it an admin, so it can post. Then, <strong>in the group</strong>, send <code>/start@your_bot_username</code> — bots don't see ordinary messages like “hi”, but they always see a command addressed to them.</li>
         <li>Paste the token below and press <strong>Find my group</strong>, pick the group, save, then <strong>Send test alert</strong>.</li>
     </ol>
     <form method="post" action="admin-community" class="form" autocomplete="off"><?= csrf_field() ?>
