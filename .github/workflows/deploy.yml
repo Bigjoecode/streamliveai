@@ -31,8 +31,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Lint PHP
+      # Same PHP as the live host (8.1), so code that needs a newer PHP fails here
+      # instead of in production.
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: curl, mbstring, pdo_mysql, fileinfo
+          coverage: none
+
+      - name: Lint PHP (8.1)
         run: find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l > /dev/null
+
+      # php -l can't see undefined constants/functions, so refuse the PHP 8.2+ names
+      # that have bitten this host before (unless guarded by defined()/function_exists()).
+      - name: No PHP 8.2+ APIs
+        run: |
+          if grep -rnE --include='*.php' --exclude-dir=vendor \
+              "(^|[^'\"(])CURLOPT_XFERINFOFUNCTION|\bjson_validate\(|\bmb_str_pad\(|\bini_parse_quantity\(|\bmemory_reset_peak_usage\(|\bmysqli_execute_query\(|Random\\\\Randomizer|readonly class" . \
+              | grep -v "defined('CURLOPT_XFERINFOFUNCTION')"; then
+            echo "::error::PHP 8.2+ only API found — the live host runs PHP 8.1."
+            exit 1
+          fi
 
       - name: Set up SSH
         env:

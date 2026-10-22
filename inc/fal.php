@@ -189,6 +189,9 @@ function sleek_fetch_output(string $url, int $maxBytes, string $mimePrefix): arr
     if (!$allowed) throw new SleekOutputRejected("Output host not allowed: {$host}");
 
     $received = 0;
+    // cURL's transfer-info callback option only exists from PHP 8.2; the live host runs 8.1, where
+    // CURLOPT_PROGRESSFUNCTION takes the same leading arguments.
+    $progressOpt = defined('CURLOPT_XFERINFOFUNCTION') ? constant('CURLOPT_XFERINFOFUNCTION') : CURLOPT_PROGRESSFUNCTION;
     $ch = curl_init($url);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER   => true,
@@ -196,7 +199,7 @@ function sleek_fetch_output(string $url, int $maxBytes, string $mimePrefix): arr
         CURLOPT_CONNECTTIMEOUT   => 15,
         CURLOPT_TIMEOUT          => 180,
         CURLOPT_NOPROGRESS       => false,
-        CURLOPT_XFERINFOFUNCTION => function ($ch, $dlTotal, $dlNow) use ($maxBytes, &$received) {
+        $progressOpt             => function ($ch, $dlTotal, $dlNow) use ($maxBytes, &$received) {
             $received = $dlNow;
             return ($dlTotal > $maxBytes || $dlNow > $maxBytes) ? 1 : 0;   // non-zero aborts
         },
