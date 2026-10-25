@@ -24,7 +24,7 @@ $active    = $active ?? 'overview';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e($pageTitle) ?> — StreamLive AI</title>
+    <title><?= e($pageTitle) ?> — LucaAi</title>
 
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -41,8 +41,8 @@ $active    = $active ?? 'overview';
             theme: {
                 extend: {
                     colors: {
-                        ink: '#14171C', surface: '#1C2027', border: '#2A2F38', muted: '#9AA3AF',
-                        paper: '#F5F6F7', signal: '#F2B705', tally: '#E5484D', reel: '#2FBF9F'
+                        ink: '#0A1733', surface: '#112450', border: '#1F3A6E', muted: '#A7B7D6',
+                        paper: '#FFFFFF', signal: '#3B8BFF', tally: '#E5484D', reel: '#2FBF9F'
                     },
                     fontFamily: {
                         display: ['Fraunces', 'Georgia', 'serif'],

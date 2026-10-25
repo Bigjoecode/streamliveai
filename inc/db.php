@@ -1,5 +1,5 @@
 <?php
-/** StreamLive AI database connection and idempotent schema migrations. */
+/** LucaAi database connection and idempotent schema migrations. */
 declare(strict_types=1);
 
 function sleek_db(): PDO

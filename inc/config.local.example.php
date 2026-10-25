@@ -15,7 +15,7 @@ return [
     ],
     'mail' => [
         'driver' => 'log',
-        'from_name' => 'StreamLive AI',
+        'from_name' => 'LucaAi',
     ],
     'flutterwave' => ['secret_key' => '', 'webhook_hash' => ''],
     'nowpayments' => ['api_key' => '', 'ipn_secret' => ''],

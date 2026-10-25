@@ -1,6 +1,6 @@
 <?php
 /**
- * StreamLive AI — app configuration.
+ * LucaAi — app configuration.
  *
  * This file holds secrets (SMTP password, DB password). It sits in inc/, which is
  * denied over HTTP by inc/.htaccess — keep it there.
@@ -16,7 +16,7 @@ return [
      * server (password-reset poisoning).
      */
     'app_url' => 'http://localhost/sleekai.com.ng',
-    'brand_name' => 'StreamLive AI',
+    'brand_name' => 'LucaAi',
 
     'db' => [
         // 'mysql' (XAMPP's MariaDB) or 'sqlite' (no server needed). For MySQL: start it in the XAMPP
@@ -57,7 +57,7 @@ return [
         // '' means no-reply@<the app_url domain>. The super admin can set all of
         // this at /admin → Email instead of editing files.
         'from_address' => '',
-        'from_name'    => 'StreamLive AI',
+        'from_name'    => 'LucaAi',
     ],
 
     'flutterwave' => [

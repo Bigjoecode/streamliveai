@@ -43,10 +43,10 @@ function admin_layout_open(string $title, array $admin, ?string $notice = null, 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#14171c">
+<meta name="theme-color" content="#0a1733">
 <title><?= e($title) ?> — <?= e($brand) ?> admin</title>
 <style>
-:root{--bg:#14171c;--card:#1c2027;--card2:#21262e;--line:#2c323b;--field:#454c57;--text:#f5f6f7;--muted:#a8aeb8;--faint:#6b727e;--gold:#f2b705;--goldwash:rgba(242,183,5,.12);--ok:#1f3326;--okline:#2f5a3c;--bad:#3a2626;--badline:#6b3a3a;--side:248px;--tabs:64px}
+:root{--bg:#0a1733;--card:#112450;--card2:#16306a;--line:#1f3a6e;--field:#2e4f8a;--text:#ffffff;--muted:#a7b7d6;--faint:#7f93b8;--gold:#3b8bff;--goldwash:rgba(59,139,255,.12);--ok:#1f3326;--okline:#2f5a3c;--bad:#3a2626;--badline:#6b3a3a;--side:248px;--tabs:64px}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -79,9 +79,9 @@ code{font-size:13px;background:var(--card2);padding:1px 6px;border-radius:6px}
 .me a:hover,.me button.linkish:hover{color:var(--text)}
 
 /* ---- top bar + bottom tabs (phone/tablet) ---- */
-.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top));background:rgba(20,23,28,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top));background:rgba(10,23,51,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .topbar .page{font-weight:600;font-size:15px;color:var(--muted)}
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(5,1fr);background:rgba(28,32,39,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(5,1fr);background:rgba(17,36,80,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 .tabs a,.tabs button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:var(--tabs);color:var(--faint);text-decoration:none;font-size:11px;font-weight:600;background:none;border:0;border-radius:0;padding:6px 2px;cursor:pointer;width:auto;font-family:inherit}
 .tabs a[aria-current=page]{color:var(--gold)}
 .tabs .ic{width:22px;height:22px}

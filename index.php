@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamLive AI — AI media studio</title>
+    <title>LucaAi — AI media studio</title>
 
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -24,12 +24,12 @@
             theme: {
                 extend: {
                     colors: {
-                        ink: '#14171C',
-                        surface: '#1C2027',
-                        border: '#2A2F38',
-                        muted: '#9AA3AF',
-                        paper: '#F5F6F7',
-                        signal: '#F2B705',
+                        ink: '#0A1733',
+                        surface: '#112450',
+                        border: '#1F3A6E',
+                        muted: '#A7B7D6',
+                        paper: '#FFFFFF',
+                        signal: '#3B8BFF',
                         tally: '#E5484D',
                         reel: '#2FBF9F'
                     },
@@ -43,17 +43,17 @@
         }
     </script>
     <style>
-        body { background-color: #14171C; }
-        ::selection { background: #F2B705; color: #14171C; }
-        .tally-dot { box-shadow: 0 0 0 3px rgba(242, 183, 5, 0.15); }
+        body { background-color: #0A1733; }
+        ::selection { background: #3B8BFF; color: #0A1733; }
+        .tally-dot { box-shadow: 0 0 0 3px rgba(59, 139, 255, 0.15); }
         .tally-dot.live { box-shadow: 0 0 0 4px rgba(229, 72, 77, 0.18); }
 
         /* --- Futuristic layer: ambient glow field ------------------------ */
         .glow-field { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
         .glow-orb { position: absolute; border-radius: 9999px; filter: blur(90px); animation: drift 22s ease-in-out infinite; }
-        .glow-orb.a { width: 520px; height: 520px; top: -160px; left: -120px; background: radial-gradient(circle, rgba(242,183,5,0.20), transparent 70%); }
+        .glow-orb.a { width: 520px; height: 520px; top: -160px; left: -120px; background: radial-gradient(circle, rgba(59,139,255,0.20), transparent 70%); }
         .glow-orb.b { width: 460px; height: 460px; top: 20%; right: -160px; background: radial-gradient(circle, rgba(47,191,159,0.14), transparent 70%); animation-delay: -8s; }
-        .glow-orb.c { width: 420px; height: 420px; bottom: -180px; left: 30%; background: radial-gradient(circle, rgba(242,183,5,0.10), transparent 70%); animation-delay: -14s; }
+        .glow-orb.c { width: 420px; height: 420px; bottom: -180px; left: 30%; background: radial-gradient(circle, rgba(59,139,255,0.10), transparent 70%); animation-delay: -14s; }
         @keyframes drift {
             0%, 100% { transform: translate(0, 0) scale(1); }
             33% { transform: translate(30px, -25px) scale(1.08); }
@@ -64,8 +64,8 @@
         /* Faint circuit-grid texture */
         .grid-overlay {
             background-image:
-                linear-gradient(rgba(242,183,5,0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(242,183,5,0.05) 1px, transparent 1px);
+                linear-gradient(rgba(59,139,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59,139,255,0.05) 1px, transparent 1px);
             background-size: 56px 56px;
             -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
             mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
@@ -73,32 +73,32 @@
 
         /* Glass surface */
         .glass {
-            background: rgba(28, 32, 39, 0.55);
+            background: rgba(17, 36, 80, 0.55);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
         .nav-blur {
-            background: rgba(20, 23, 28, 0.72);
+            background: rgba(10, 23, 51, 0.72);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
         }
 
         /* Hover-glow card */
-        .glow-card { box-shadow: 0 0 22px rgba(242, 183, 5, 0.06); transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease; }
-        .glow-card:hover { box-shadow: 0 0 44px rgba(242, 183, 5, 0.16); border-color: rgba(242, 183, 5, 0.35); transform: translateY(-3px); }
+        .glow-card { box-shadow: 0 0 22px rgba(59, 139, 255, 0.06); transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease; }
+        .glow-card:hover { box-shadow: 0 0 44px rgba(59, 139, 255, 0.16); border-color: rgba(59, 139, 255, 0.35); transform: translateY(-3px); }
 
         /* Gradient headline text */
         .gradient-text {
-            background: linear-gradient(120deg, #F5F6F7 20%, #F2B705 55%, #F5F6F7 85%);
+            background: linear-gradient(120deg, #FFFFFF 20%, #3B8BFF 55%, #FFFFFF 85%);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
         }
 
         /* Glowing button */
-        .btn-glow { box-shadow: 0 0 22px rgba(242, 183, 5, 0.28); transition: box-shadow 0.25s ease, transform 0.15s ease; }
-        .btn-glow:hover { box-shadow: 0 0 36px rgba(242, 183, 5, 0.48); transform: translateY(-1px); }
+        .btn-glow { box-shadow: 0 0 22px rgba(59, 139, 255, 0.28); transition: box-shadow 0.25s ease, transform 0.15s ease; }
+        .btn-glow:hover { box-shadow: 0 0 36px rgba(59, 139, 255, 0.48); transform: translateY(-1px); }
 
         /* Fade/rise-in on scroll */
         .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.6s ease, transform 0.6s ease; }
@@ -106,7 +106,7 @@
 
         /* Homepage hero: gradient headline treatment */
         .hero-shine {
-            background: linear-gradient(115deg, #F2B705 0%, #FBDE7A 45%, #F2B705 100%);
+            background: linear-gradient(115deg, #3B8BFF 0%, #8FBFFF 45%, #3B8BFF 100%);
             -webkit-background-clip: text;
             background-clip: text;
         }
@@ -153,7 +153,7 @@
     <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 md:px-12">
         <a href="./" class="flex items-center gap-2">
             <span class="h-2.5 w-2.5 rounded-full bg-signal tally-dot"></span>
-            <span class="font-display text-lg tracking-tight">StreamLive AI</span>
+            <span class="font-display text-lg tracking-tight">LucaAi</span>
         </a>
 
         <nav class="hidden items-center gap-7 text-sm text-muted md:flex">
@@ -216,7 +216,7 @@
 
     <div class="relative mx-auto max-w-3xl text-center">
         <span class="live-pulse inline-flex items-center gap-2 rounded-full border border-signal/35 bg-signal/[0.08] px-4 py-1.5 font-mono text-[11px] text-signal">
-            <span class="h-1.5 w-1.5 rounded-full bg-signal shadow-[0_0_10px_rgba(242,183,5,0.85)]"></span>
+            <span class="h-1.5 w-1.5 rounded-full bg-signal shadow-[0_0_10px_rgba(59,139,255,0.85)]"></span>
             Now live — realtime full body swap
         </span>
 
@@ -289,7 +289,7 @@
 
         <div class="compare-slider glass glow-card relative aspect-video w-full cursor-ew-resize select-none overflow-hidden rounded-lg">
             <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-border to-surface font-mono text-xs text-muted">original photo</div>
-            <div class="compare-after absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#4a3f14] to-ink font-mono text-xs text-signal" style="clip-path: inset(0 0 0 50%);">ai output</div>
+            <div class="compare-after absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#1b3a7a] to-ink font-mono text-xs text-signal" style="clip-path: inset(0 0 0 50%);">ai output</div>
             <div class="pointer-events-none absolute top-3 left-3 rounded-sm bg-ink/80 px-2 py-0.5 font-mono text-[10px] text-muted">ORIGINAL</div>
             <div class="pointer-events-none absolute top-3 right-3 rounded-sm bg-ink/80 px-2 py-0.5 font-mono text-[10px] text-signal">AI OUTPUT</div>
             <div class="compare-handle pointer-events-none absolute top-0 bottom-0 w-0.5 bg-signal" style="left: 50%;">
@@ -435,17 +435,17 @@
         <div class="mt-8 divide-y divide-border border-t border-border">
                             <details class="group py-4">
                     <summary class="flex cursor-pointer list-none items-center justify-between text-sm text-paper">
-                        <span>What can I use StreamLive AI for?</span>
+                        <span>What can I use LucaAi for?</span>
                         <span class="text-muted transition-transform group-open:rotate-180">⌄</span>
                     </summary>
-                    <p class="pt-3 text-sm leading-relaxed text-muted">StreamLive AI brings powerful AI tools for video, images, voice, and real-time livestreaming together in one platform.</p>
+                    <p class="pt-3 text-sm leading-relaxed text-muted">LucaAi brings powerful AI tools for video, images, voice, and real-time livestreaming together in one platform.</p>
                 </details>
                             <details class="group py-4">
                     <summary class="flex cursor-pointer list-none items-center justify-between text-sm text-paper">
-                        <span>Can I use StreamLive AI on my phone?</span>
+                        <span>Can I use LucaAi on my phone?</span>
                         <span class="text-muted transition-transform group-open:rotate-180">⌄</span>
                     </summary>
-                    <p class="pt-3 text-sm leading-relaxed text-muted">Yes. StreamLive AI works on both phones and laptops, so you can use the tools from the device you already have.</p>
+                    <p class="pt-3 text-sm leading-relaxed text-muted">Yes. LucaAi works on both phones and laptops, so you can use the tools from the device you already have.</p>
                 </details>
                             <details class="group py-4">
                     <summary class="flex cursor-pointer list-none items-center justify-between text-sm text-paper">
@@ -459,7 +459,7 @@
                         <span>How does the credit system work?</span>
                         <span class="text-muted transition-transform group-open:rotate-180">⌄</span>
                     </summary>
-                    <p class="pt-3 text-sm leading-relaxed text-muted">You purchase credits and use them across StreamLive AI&#039;s tools. Credits are deducted based on the job or service you use.</p>
+                    <p class="pt-3 text-sm leading-relaxed text-muted">You purchase credits and use them across LucaAi&#039;s tools. Credits are deducted based on the job or service you use.</p>
                 </details>
                             <details class="group py-4">
                     <summary class="flex cursor-pointer list-none items-center justify-between text-sm text-paper">

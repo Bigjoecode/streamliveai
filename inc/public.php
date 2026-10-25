@@ -63,7 +63,7 @@ function sleek_public_footer(): void
         <div>
             <div class="flex items-center gap-2">
                 <span class="h-2.5 w-2.5 rounded-full bg-signal tally-dot"></span>
-                <span class="font-display text-lg tracking-tight">StreamLive AI</span>
+                <span class="font-display text-lg tracking-tight">LucaAi</span>
             </div>
             <p class="mt-3 max-w-xs text-sm text-muted">
                 One control room for powerful AI tools - build for creation, transformation, and real-time experiences.
@@ -106,7 +106,7 @@ function sleek_public_footer(): void
     </div>
 
     <div class="mx-auto mt-12 max-w-6xl border-t border-border pt-6 text-sm text-muted">
-        © <?= date('Y') ?> StreamLive AI. Built to make AI simpler, faster, and more accessible.
+        © <?= date('Y') ?> LucaAi. Built to make AI simpler, faster, and more accessible.
     </div>
 </footer>
     <?php

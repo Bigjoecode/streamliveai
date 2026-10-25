@@ -44,26 +44,26 @@ function sleek_welcome_email(array $user, ?string $setPasswordLink = null, int $
     $cta = e($ctaUrl);
 
     $setNote = $setPasswordLink !== null
-        ? "<tr><td style=\"padding:0 32px 8px;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;color:#9AA3AF;\">Your account was created for you. Choose a password with the button above — the link works once and expires in {$linkMinutes} minutes. After that, use “Forgot password” on the login page.</td></tr>"
+        ? "<tr><td style=\"padding:0 32px 8px;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;color:#A7B7D6;\">Your account was created for you. Choose a password with the button above — the link works once and expires in {$linkMinutes} minutes. After that, use “Forgot password” on the login page.</td></tr>"
         : '';
     $telegramRow = $telegram !== ''
-        ? '<tr><td style="padding:0 32px 8px;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#9AA3AF;">Updates, tips and support: <a href="' . e($telegram) . '" style="color:#F2B705;">join us on Telegram</a>.</td></tr>'
+        ? '<tr><td style="padding:0 32px 8px;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#A7B7D6;">Updates, tips and support: <a href="' . e($telegram) . '" style="color:#3B8BFF;">join us on Telegram</a>.</td></tr>'
         : '';
 
-    $p = 'padding:8px 32px 0;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#9AA3AF;';
+    $p = 'padding:8px 32px 0;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#A7B7D6;';
     $li = 'margin:0 0 6px;';
 
     $html = <<<HTML
 <!DOCTYPE html>
 <html lang="en">
-<body style="margin:0;padding:0;background:#14171C;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#14171C;padding:40px 16px;">
+<body style="margin:0;padding:0;background:#0A1733;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0A1733;padding:40px 16px;">
     <tr><td align="center">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#1C2027;border:1px solid #2A2F38;border-radius:12px;">
-        <tr><td style="padding:32px 32px 8px;font-family:Georgia,serif;font-size:20px;font-weight:600;color:#F5F6F7;">
-          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#F2B705;margin-right:8px;vertical-align:middle;"></span>{$brandH}
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#112450;border:1px solid #1F3A6E;border-radius:12px;">
+        <tr><td style="padding:32px 32px 8px;font-family:Georgia,serif;font-size:20px;font-weight:600;color:#FFFFFF;">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3B8BFF;margin-right:8px;vertical-align:middle;"></span>{$brandH}
         </td></tr>
-        <tr><td style="padding:16px 32px 0;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#F5F6F7;">
+        <tr><td style="padding:16px 32px 0;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#FFFFFF;">
           Welcome, {$first}!
         </td></tr>
         <tr><td style="{$p}">
@@ -71,22 +71,22 @@ function sleek_welcome_email(array $user, ?string $setPasswordLink = null, int $
         </td></tr>
         <tr><td style="{$p}">
           <ul style="margin:8px 0 0;padding-left:20px;">
-            <li style="{$li}"><strong style="color:#F5F6F7;">Livestream</strong> — real-time AI character swap from your webcam</li>
-            <li style="{$li}"><strong style="color:#F5F6F7;">Voice Cloning</strong> and <strong style="color:#F5F6F7;">Voice Isolator</strong></li>
-            <li style="{$li}"><strong style="color:#F5F6F7;">Image to Video</strong> and <strong style="color:#F5F6F7;">AI Image Edit</strong></li>
+            <li style="{$li}"><strong style="color:#FFFFFF;">Livestream</strong> — real-time AI character swap from your webcam</li>
+            <li style="{$li}"><strong style="color:#FFFFFF;">Voice Cloning</strong> and <strong style="color:#FFFFFF;">Voice Isolator</strong></li>
+            <li style="{$li}"><strong style="color:#FFFFFF;">Image to Video</strong> and <strong style="color:#FFFFFF;">AI Image Edit</strong></li>
           </ul>
         </td></tr>
         <tr><td style="padding:24px 32px;">
-          <a href="{$cta}" style="display:inline-block;background:#F2B705;color:#14171C;font-family:Arial,sans-serif;font-size:15px;font-weight:600;text-decoration:none;padding:12px 24px;border-radius:8px;">{$ctaLabel}</a>
+          <a href="{$cta}" style="display:inline-block;background:#3B8BFF;color:#0A1733;font-family:Arial,sans-serif;font-size:15px;font-weight:600;text-decoration:none;padding:12px 24px;border-radius:8px;">{$ctaLabel}</a>
         </td></tr>
         {$setNote}
-        <tr><td style="padding:0 32px 8px;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#9AA3AF;">
-          Ready to start? <a href="{$pricing}" style="color:#F2B705;">Get credits</a>. Invite friends with your referral link and earn a bonus on their first purchase:<br>
-          <a href="{$referral}" style="color:#F2B705;word-break:break-all;">{$referral}</a>
+        <tr><td style="padding:0 32px 8px;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#A7B7D6;">
+          Ready to start? <a href="{$pricing}" style="color:#3B8BFF;">Get credits</a>. Invite friends with your referral link and earn a bonus on their first purchase:<br>
+          <a href="{$referral}" style="color:#3B8BFF;word-break:break-all;">{$referral}</a>
         </td></tr>
         {$telegramRow}
-        <tr><td style="padding:20px 32px 32px;font-family:Arial,sans-serif;font-size:12px;line-height:1.6;color:#6B727E;">
-          You're getting this because an account was created with this email address. Questions? Reach us on our <a href="{$contact}" style="color:#9AA3AF;">contact page</a>.
+        <tr><td style="padding:20px 32px 32px;font-family:Arial,sans-serif;font-size:12px;line-height:1.6;color:#7F93B8;">
+          You're getting this because an account was created with this email address. Questions? Reach us on our <a href="{$contact}" style="color:#A7B7D6;">contact page</a>.
         </td></tr>
       </table>
     </td></tr>

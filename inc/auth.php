@@ -1,6 +1,6 @@
 <?php
 /**
- * StreamLive AI — registration, login, logout and the page guards.
+ * LucaAi — registration, login, logout and the page guards.
  */
 
 declare(strict_types=1);
@@ -415,7 +415,7 @@ function sleek_request_password_reset(string $email): void
     $link = sleek_issue_reset_link((int) $user['id'], (int) $auth['reset_ttl_seconds']);
     [$html, $text] = sleek_reset_email($user['name'], $link, intdiv($auth['reset_ttl_seconds'], 60));
 
-    sleek_send_mail($user['email'], $user['name'], 'Reset your StreamLive AI password', $html, $text);
+    sleek_send_mail($user['email'], $user['name'], 'Reset your LucaAi password', $html, $text);
     require_once __DIR__ . '/telegram.php';
     sleek_alert('reset', 'Password reset requested', ['Account' => $user['name'] . ' <' . $user['email'] . '>'], 'admin-user?id=' . $user['id']);
 }
@@ -501,27 +501,27 @@ function sleek_reset_email(string $name, string $link, int $minutes): array
     $html = <<<HTML
 <!DOCTYPE html>
 <html lang="en">
-<body style="margin:0;padding:0;background:#14171C;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#14171C;padding:40px 16px;">
+<body style="margin:0;padding:0;background:#0A1733;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0A1733;padding:40px 16px;">
     <tr><td align="center">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#1C2027;border:1px solid #2A2F38;border-radius:12px;">
-        <tr><td style="padding:32px 32px 8px;font-family:Georgia,serif;font-size:20px;font-weight:600;color:#F5F6F7;">
-          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#F2B705;margin-right:8px;vertical-align:middle;"></span>StreamLive AI
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#112450;border:1px solid #1F3A6E;border-radius:12px;">
+        <tr><td style="padding:32px 32px 8px;font-family:Georgia,serif;font-size:20px;font-weight:600;color:#FFFFFF;">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3B8BFF;margin-right:8px;vertical-align:middle;"></span>LucaAi
         </td></tr>
-        <tr><td style="padding:16px 32px 0;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#F5F6F7;">
+        <tr><td style="padding:16px 32px 0;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#FFFFFF;">
           Hi {$first},
         </td></tr>
-        <tr><td style="padding:8px 32px 0;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#9AA3AF;">
-          Someone asked to reset the password on your StreamLive AI account. If that was you, choose a new one below.
+        <tr><td style="padding:8px 32px 0;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#A7B7D6;">
+          Someone asked to reset the password on your LucaAi account. If that was you, choose a new one below.
         </td></tr>
         <tr><td style="padding:28px 32px;">
-          <a href="{$url}" style="display:inline-block;background:#F2B705;color:#14171C;font-family:Arial,sans-serif;font-size:15px;font-weight:600;text-decoration:none;padding:12px 24px;border-radius:8px;">Reset password</a>
+          <a href="{$url}" style="display:inline-block;background:#3B8BFF;color:#0A1733;font-family:Arial,sans-serif;font-size:15px;font-weight:600;text-decoration:none;padding:12px 24px;border-radius:8px;">Reset password</a>
         </td></tr>
-        <tr><td style="padding:0 32px;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;color:#9AA3AF;">
+        <tr><td style="padding:0 32px;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;color:#A7B7D6;">
           The link works once and expires in {$minutes} minutes. If you didn't ask for this, ignore this email — your password won't change.
         </td></tr>
-        <tr><td style="padding:20px 32px 32px;font-family:Arial,sans-serif;font-size:12px;line-height:1.6;color:#6B727E;word-break:break-all;">
-          Button not working? Paste this into your browser:<br><a href="{$url}" style="color:#F2B705;">{$url}</a>
+        <tr><td style="padding:20px 32px 32px;font-family:Arial,sans-serif;font-size:12px;line-height:1.6;color:#7F93B8;word-break:break-all;">
+          Button not working? Paste this into your browser:<br><a href="{$url}" style="color:#3B8BFF;">{$url}</a>
         </td></tr>
       </table>
     </td></tr>
@@ -531,10 +531,10 @@ function sleek_reset_email(string $name, string $link, int $minutes): array
 HTML;
 
     $text = "Hi " . explode(' ', trim($name))[0] . ",\n\n"
-          . "Someone asked to reset the password on your StreamLive AI account. If that was you, open this link to choose a new one:\n\n"
+          . "Someone asked to reset the password on your LucaAi account. If that was you, open this link to choose a new one:\n\n"
           . $link . "\n\n"
           . "The link works once and expires in {$minutes} minutes. If you didn't ask for this, ignore this email — your password won't change.\n\n"
-          . "— StreamLive AI\n";
+          . "— LucaAi\n";
 
     return [$html, $text];
 }

@@ -6,6 +6,10 @@
 
 function sleek_render_jobs(array $jobs, bool $showTool): void
 {
+    // Where Delete returns to: the page showing this list.
+    // From the address, not the script name — the same under Apache, LiteSpeed and
+    // PHP's dev router. job-delete only accepts known pages anyway.
+    $here = basename((string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH), '.php') ?: 'job-history';
     $badge = [
         'completed'  => ['Done',       'border-reel/35 bg-reel/10 text-reel'],
         'processing' => ['Processing', 'border-signal/35 bg-signal/10 text-signal'],
@@ -36,7 +40,18 @@ function sleek_render_jobs(array $jobs, bool $showTool): void
                             <?php endif; ?>
                         </p>
                     </div>
-                    <span class="shrink-0 rounded-full border px-2.5 py-0.5 text-[12px] <?= $cls ?>"><?= e($label) ?></span>
+                    <div class="flex shrink-0 items-center gap-2">
+                        <span class="rounded-full border px-2.5 py-0.5 text-[12px] <?= $cls ?>"><?= e($label) ?></span>
+                        <?php if ($job['status'] !== 'processing'): ?>
+                            <form method="POST" action="job-delete" class="m-0" onsubmit="return confirm('Delete this job and its file? This can't be undone.')">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="job" value="<?= (int) $job['id'] ?>">
+                                <input type="hidden" name="return" value="<?= e($here) ?>">
+                                <button type="submit" aria-label="Delete this job"
+                                        class="rounded-full border border-border px-2.5 py-0.5 text-[12px] text-muted transition-colors hover:border-tally/50 hover:text-tally">Delete</button>
+                            </form>
+                        <?php endif; ?>
+                    </div>
                 </div>
 
                 <?php if ($job['status'] === 'completed' && $job['output_file']): ?>

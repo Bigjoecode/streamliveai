@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy — StreamLive AI</title>
+    <title>Privacy Policy — LucaAi</title>
 
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -24,12 +24,12 @@
             theme: {
                 extend: {
                     colors: {
-                        ink: '#14171C',
-                        surface: '#1C2027',
-                        border: '#2A2F38',
-                        muted: '#9AA3AF',
-                        paper: '#F5F6F7',
-                        signal: '#F2B705',
+                        ink: '#0A1733',
+                        surface: '#112450',
+                        border: '#1F3A6E',
+                        muted: '#A7B7D6',
+                        paper: '#FFFFFF',
+                        signal: '#3B8BFF',
                         tally: '#E5484D',
                         reel: '#2FBF9F'
                     },
@@ -43,17 +43,17 @@
         }
     </script>
     <style>
-        body { background-color: #14171C; }
-        ::selection { background: #F2B705; color: #14171C; }
-        .tally-dot { box-shadow: 0 0 0 3px rgba(242, 183, 5, 0.15); }
+        body { background-color: #0A1733; }
+        ::selection { background: #3B8BFF; color: #0A1733; }
+        .tally-dot { box-shadow: 0 0 0 3px rgba(59, 139, 255, 0.15); }
         .tally-dot.live { box-shadow: 0 0 0 4px rgba(229, 72, 77, 0.18); }
 
         /* --- Futuristic layer: ambient glow field ------------------------ */
         .glow-field { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
         .glow-orb { position: absolute; border-radius: 9999px; filter: blur(90px); animation: drift 22s ease-in-out infinite; }
-        .glow-orb.a { width: 520px; height: 520px; top: -160px; left: -120px; background: radial-gradient(circle, rgba(242,183,5,0.20), transparent 70%); }
+        .glow-orb.a { width: 520px; height: 520px; top: -160px; left: -120px; background: radial-gradient(circle, rgba(59,139,255,0.20), transparent 70%); }
         .glow-orb.b { width: 460px; height: 460px; top: 20%; right: -160px; background: radial-gradient(circle, rgba(47,191,159,0.14), transparent 70%); animation-delay: -8s; }
-        .glow-orb.c { width: 420px; height: 420px; bottom: -180px; left: 30%; background: radial-gradient(circle, rgba(242,183,5,0.10), transparent 70%); animation-delay: -14s; }
+        .glow-orb.c { width: 420px; height: 420px; bottom: -180px; left: 30%; background: radial-gradient(circle, rgba(59,139,255,0.10), transparent 70%); animation-delay: -14s; }
         @keyframes drift {
             0%, 100% { transform: translate(0, 0) scale(1); }
             33% { transform: translate(30px, -25px) scale(1.08); }
@@ -64,8 +64,8 @@
         /* Faint circuit-grid texture */
         .grid-overlay {
             background-image:
-                linear-gradient(rgba(242,183,5,0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(242,183,5,0.05) 1px, transparent 1px);
+                linear-gradient(rgba(59,139,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59,139,255,0.05) 1px, transparent 1px);
             background-size: 56px 56px;
             -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
             mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
@@ -73,32 +73,32 @@
 
         /* Glass surface */
         .glass {
-            background: rgba(28, 32, 39, 0.55);
+            background: rgba(17, 36, 80, 0.55);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
         .nav-blur {
-            background: rgba(20, 23, 28, 0.72);
+            background: rgba(10, 23, 51, 0.72);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
         }
 
         /* Hover-glow card */
-        .glow-card { box-shadow: 0 0 22px rgba(242, 183, 5, 0.06); transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease; }
-        .glow-card:hover { box-shadow: 0 0 44px rgba(242, 183, 5, 0.16); border-color: rgba(242, 183, 5, 0.35); transform: translateY(-3px); }
+        .glow-card { box-shadow: 0 0 22px rgba(59, 139, 255, 0.06); transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease; }
+        .glow-card:hover { box-shadow: 0 0 44px rgba(59, 139, 255, 0.16); border-color: rgba(59, 139, 255, 0.35); transform: translateY(-3px); }
 
         /* Gradient headline text */
         .gradient-text {
-            background: linear-gradient(120deg, #F5F6F7 20%, #F2B705 55%, #F5F6F7 85%);
+            background: linear-gradient(120deg, #FFFFFF 20%, #3B8BFF 55%, #FFFFFF 85%);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
         }
 
         /* Glowing button */
-        .btn-glow { box-shadow: 0 0 22px rgba(242, 183, 5, 0.28); transition: box-shadow 0.25s ease, transform 0.15s ease; }
-        .btn-glow:hover { box-shadow: 0 0 36px rgba(242, 183, 5, 0.48); transform: translateY(-1px); }
+        .btn-glow { box-shadow: 0 0 22px rgba(59, 139, 255, 0.28); transition: box-shadow 0.25s ease, transform 0.15s ease; }
+        .btn-glow:hover { box-shadow: 0 0 36px rgba(59, 139, 255, 0.48); transform: translateY(-1px); }
 
         /* Fade/rise-in on scroll */
         .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.6s ease, transform 0.6s ease; }
@@ -106,7 +106,7 @@
 
         /* Homepage hero: gradient headline treatment */
         .hero-shine {
-            background: linear-gradient(115deg, #F2B705 0%, #FBDE7A 45%, #F2B705 100%);
+            background: linear-gradient(115deg, #3B8BFF 0%, #8FBFFF 45%, #3B8BFF 100%);
             -webkit-background-clip: text;
             background-clip: text;
         }
@@ -153,7 +153,7 @@
     <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 md:px-12">
         <a href="./" class="flex items-center gap-2">
             <span class="h-2.5 w-2.5 rounded-full bg-signal tally-dot"></span>
-            <span class="font-display text-lg tracking-tight">StreamLive AI</span>
+            <span class="font-display text-lg tracking-tight">LucaAi</span>
         </a>
 
         <nav class="hidden items-center gap-7 text-sm text-muted md:flex">
@@ -216,7 +216,7 @@
         <section>
             <h2 class="font-display text-xl text-paper">1. What this covers</h2>
             <p class="mt-2 leading-relaxed">
-                This policy explains what personal data StreamLive AI collects, why, and what rights you have over it.
+                This policy explains what personal data LucaAi collects, why, and what rights you have over it.
                 Because our Services involve faces and voices, we've tried to be direct about exactly what
                 happens to that specific kind of data, rather than burying it in generic language.
             </p>

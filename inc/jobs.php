@@ -275,6 +275,39 @@ function sleek_jobs_sweep(): void
 }
 
 /** A user's jobs, newest first, optionally for one tool. */
+/**
+ * Delete a user's own finished jobs — one ($jobId) or all of them (null) — and
+ * their output files. Jobs still processing are never touched: their credits
+ * are reserved and a provider may still deliver. The credit ledger is kept, so
+ * balances and billing history don't change. Returns how many were deleted.
+ */
+function sleek_delete_user_jobs(int $userId, ?int $jobId = null): int
+{
+    $db  = sleek_db();
+    $sql = "SELECT id, tool, output_file, created_at FROM jobs WHERE user_id = ? AND status <> 'processing'";
+    $args = [$userId];
+    if ($jobId !== null) { $sql .= ' AND id = ?'; $args[] = $jobId; }
+    $stmt = $db->prepare($sql);
+    $stmt->execute($args);
+    $rows = $stmt->fetchAll();
+    if (!$rows) return 0;
+
+    $del = $db->prepare("DELETE FROM jobs WHERE id = ? AND user_id = ? AND status <> 'processing'");
+    $n = 0;
+    foreach ($rows as $r) {
+        $del->execute([$r['id'], $userId]);
+        if ($del->rowCount() !== 1) continue;
+        $n++;
+        $file = (string) ($r['output_file'] ?? '');
+        if ($file !== '' && preg_match('/^[a-f0-9]{32}\.[a-z0-9]{2,5}$/', $file)) @unlink(sleek_storage_dir('outputs') . '/' . $file);
+        // A trace that a (consent-logged) job existed, kept after the user removes it.
+        @file_put_contents(__DIR__ . '/../storage/admin.log',
+            '[' . date('Y-m-d H:i:s') . "] USER #{$userId} deleted job #{$r['id']} ({$r['tool']}, created " . date('Y-m-d H:i', (int) $r['created_at']) . ")\n",
+            FILE_APPEND | LOCK_EX);
+    }
+    return $n;
+}
+
 function sleek_user_jobs(int $userId, ?string $tool = null, int $limit = 50): array
 {
     $sql = 'SELECT id, tool, status, credits, title, output_file, output_mime, error, created_at, completed_at FROM jobs WHERE user_id = ?';

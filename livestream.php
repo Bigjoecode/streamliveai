@@ -150,7 +150,7 @@ $minCost = min($cfg['session_minutes']) * 60 * $rate;
                         class="btn-glow w-full rounded-lg bg-signal py-3 text-[14.5px] font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none">
                     Loading…
                 </button>
-                <p class="text-[12px] leading-relaxed text-muted">Your camera and reference photo go straight from this browser to our video partner, Decart — they never pass through StreamLive AI's servers.</p>
+                <p class="text-[12px] leading-relaxed text-muted">Your camera and reference photo go straight from this browser to our video partner, Decart — they never pass through LucaAi's servers.</p>
             </div>
         </form>
     </div>

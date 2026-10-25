@@ -87,7 +87,7 @@ if (sleek_is_post()) {
     $voiceId = null;
     try {
         // The provider-side name carries no user data — just our job number.
-        $voiceId = sleek_el_add_voice("StreamLive AI job {$jobId}", $samples);
+        $voiceId = sleek_el_add_voice("LucaAi job {$jobId}", $samples);
         $out     = sleek_el_tts($voiceId, $script);
         if (sleek_job_complete($jobId, $out['bytes'], $out['mime'])) {
             sleek_flash('success', 'Done — your cloned voice is ready below.');

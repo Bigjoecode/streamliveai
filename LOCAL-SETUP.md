@@ -1,4 +1,4 @@
-# StreamLive AI local setup
+# LucaAi local setup
 
 The current development override is `inc/config.local.php`. It selects a separate SQLite database at `storage/streamlive-local.sqlite`; production defaults remain in `inc/config.php` and still use MariaDB.
 

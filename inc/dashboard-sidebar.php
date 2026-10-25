@@ -21,7 +21,7 @@ if (($authUser['role'] ?? 'user') === 'super_admin') {
 <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 flex w-[272px] flex-col border-r border-border bg-ink">
     <div class="flex h-[72px] shrink-0 items-center gap-2.5 px-6">
         <span class="tally-dot h-2 w-2 rounded-full bg-signal" aria-hidden="true"></span>
-        <a href="./" class="font-display text-[19px] font-semibold tracking-tight text-paper">StreamLive AI</a>
+        <a href="./" class="font-display text-[19px] font-semibold tracking-tight text-paper">LucaAi</a>
     </div>
 
     <nav class="px-4 pt-3" aria-label="Dashboard">

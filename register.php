@@ -23,7 +23,7 @@ auth_layout_open('Create account', 'One control room for synthetic media.');
 $describe = fn(string $f): string => isset($errors[$f]) ? ' aria-invalid="true" aria-describedby="' . $f . '-error"' : '';
 ?>
                 <h1 class="font-display text-3xl">Create your account</h1>
-                <p class="mt-2 text-sm text-muted">Register an account and start creating with StreamLive AI</p>
+                <p class="mt-2 text-sm text-muted">Register an account and start creating with LucaAi</p>
                 <?php if ($errors): ?>
                     <div role="alert" class="mt-6 rounded-md border border-tally/40 bg-tally/10 px-3 py-2.5 text-sm text-paper">
                         Please fix the <?= count($errors) === 1 ? 'field' : 'fields' ?> marked below.

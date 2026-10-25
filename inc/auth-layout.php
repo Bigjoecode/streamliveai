@@ -12,7 +12,7 @@ function auth_layout_open(string $title, string $headline): void
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e($title) ?> — StreamLive AI</title>
+    <title><?= e($title) ?> — LucaAi</title>
 
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -29,8 +29,8 @@ function auth_layout_open(string $title, string $headline): void
             theme: {
                 extend: {
                     colors: {
-                        ink: '#14171C', surface: '#1C2027', border: '#2A2F38', muted: '#9AA3AF',
-                        paper: '#F5F6F7', signal: '#F2B705', tally: '#E5484D', reel: '#2FBF9F'
+                        ink: '#0A1733', surface: '#112450', border: '#1F3A6E', muted: '#A7B7D6',
+                        paper: '#FFFFFF', signal: '#3B8BFF', tally: '#E5484D', reel: '#2FBF9F'
                     },
                     fontFamily: {
                         display: ['Fraunces', 'Georgia', 'serif'],
@@ -58,7 +58,7 @@ function auth_layout_open(string $title, string $headline): void
             <div class="relative">
                 <a href="./" class="flex items-center gap-2">
                     <span class="tally-dot h-2.5 w-2.5 rounded-full bg-signal"></span>
-                    <span class="font-display text-lg tracking-tight">StreamLive AI</span>
+                    <span class="font-display text-lg tracking-tight">LucaAi</span>
                 </a>
             </div>
 
@@ -88,7 +88,7 @@ function auth_layout_open(string $title, string $headline): void
                 <div class="mb-6 flex items-center gap-2 md:hidden">
                     <a href="./" class="flex items-center gap-2">
                         <span class="tally-dot h-2.5 w-2.5 rounded-full bg-signal"></span>
-                        <span class="font-display text-lg tracking-tight">StreamLive AI</span>
+                        <span class="font-display text-lg tracking-tight">LucaAi</span>
                     </a>
                 </div>
 <?php }

@@ -2,10 +2,10 @@
    Shared by dashboard.php, job-history.php, credits-billing.php, referrals.php.
    Colour literals here mirror the Tailwind theme inc/dashboard-head.php declares. */
 
-body { background-color: #14171C; }
-::selection { background: #F2B705; color: #14171C; }
+body { background-color: #0A1733; }
+::selection { background: #3B8BFF; color: #0A1733; }
 
-.tally-dot { box-shadow: 0 0 0 3px rgba(242, 183, 5, 0.15); }
+.tally-dot { box-shadow: 0 0 0 3px rgba(59, 139, 255, 0.15); }
 
 /* =========================================================== shell layout ==
    Mobile first: the sidebar is an off-canvas drawer and the shell takes the
@@ -25,7 +25,7 @@ body.nav-open #sidebar { transform: translateX(0); }
     position: fixed;
     inset: 0;
     z-index: 35;
-    background: rgba(8, 10, 13, 0.6);
+    background: rgba(5, 12, 30, 0.6);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
 }
@@ -58,16 +58,16 @@ body.nav-open { overflow: hidden; }
     border-radius: 0.5rem;
     padding: 0.625rem 1rem;
     font-size: 14.5px;
-    color: #9AA3AF;
+    color: #A7B7D6;
     transition: background-color .15s ease, color .15s ease;
 }
 .nav-link + .nav-link { margin-top: 0.25rem; }
-.nav-link:hover { background: rgba(255, 255, 255, 0.03); color: #F5F6F7; }
+.nav-link:hover { background: rgba(255, 255, 255, 0.03); color: #FFFFFF; }
 
 .nav-link.is-active {
     position: relative;
-    background: rgba(242, 183, 5, 0.07);
-    color: #F5F6F7;
+    background: rgba(59, 139, 255, 0.07);
+    color: #FFFFFF;
     font-weight: 500;
 }
 .nav-link.is-active::before {
@@ -79,19 +79,19 @@ body.nav-open { overflow: hidden; }
     height: 20px;
     width: 3px;
     border-radius: 0 2px 2px 0;
-    background: #F2B705;
+    background: #3B8BFF;
 }
 
 /* ------------------------------------------------------------------ hero */
 .hero-wash {
     background:
-        radial-gradient(ellipse 55% 150% at 0% 50%, rgba(242, 183, 5, 0.17), transparent 70%),
+        radial-gradient(ellipse 55% 150% at 0% 50%, rgba(59, 139, 255, 0.17), transparent 70%),
         radial-gradient(ellipse 45% 130% at 100% 45%, rgba(47, 191, 159, 0.07), transparent 70%);
 }
 .hero-grid {
     background-image:
-        linear-gradient(rgba(242, 183, 5, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(242, 183, 5, 0.05) 1px, transparent 1px);
+        linear-gradient(rgba(59, 139, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 139, 255, 0.05) 1px, transparent 1px);
     background-size: 56px 56px;
     -webkit-mask-image: linear-gradient(90deg, black 10%, transparent 85%);
     mask-image: linear-gradient(90deg, black 10%, transparent 85%);
@@ -99,19 +99,19 @@ body.nav-open { overflow: hidden; }
 
 /* ----------------------------------------------------------------- cards */
 .tool-card { transition: border-color .25s ease, box-shadow .25s ease, transform .25s ease; }
-.tool-card:hover { border-color: rgba(242, 183, 5, 0.35); transform: translateY(-2px); }
+.tool-card:hover { border-color: rgba(59, 139, 255, 0.35); transform: translateY(-2px); }
 .tool-card.featured {
-    border-color: rgba(242, 183, 5, 0.38);
-    background: rgba(242, 183, 5, 0.035);
-    box-shadow: 0 0 28px rgba(242, 183, 5, 0.07);
+    border-color: rgba(59, 139, 255, 0.38);
+    background: rgba(59, 139, 255, 0.035);
+    box-shadow: 0 0 28px rgba(59, 139, 255, 0.07);
 }
 
 .pack-card { position: relative; transition: border-color .25s ease, box-shadow .25s ease, transform .25s ease; }
-.pack-card:hover { border-color: rgba(242, 183, 5, 0.35); transform: translateY(-2px); }
+.pack-card:hover { border-color: rgba(59, 139, 255, 0.35); transform: translateY(-2px); }
 .pack-card.featured {
-    border-color: rgba(242, 183, 5, 0.45);
-    background: rgba(242, 183, 5, 0.035);
-    box-shadow: 0 0 32px rgba(242, 183, 5, 0.08);
+    border-color: rgba(59, 139, 255, 0.45);
+    background: rgba(59, 139, 255, 0.035);
+    box-shadow: 0 0 32px rgba(59, 139, 255, 0.08);
 }
 .pack-badge {
     position: absolute;
@@ -119,17 +119,17 @@ body.nav-open { overflow: hidden; }
     left: 28px;
     transform: translateY(-50%);
     border-radius: 9999px;
-    background: #F2B705;
+    background: #3B8BFF;
     padding: 4px 12px;
     font-size: 11.5px;
     font-weight: 600;
-    color: #14171C;
+    color: #0A1733;
     white-space: nowrap;
 }
 
 /* --------------------------------------------------------------- buttons */
-.btn-glow { box-shadow: 0 0 22px rgba(242, 183, 5, 0.28); transition: box-shadow .25s ease, transform .15s ease; }
-.btn-glow:hover { box-shadow: 0 0 36px rgba(242, 183, 5, 0.48); transform: translateY(-1px); }
+.btn-glow { box-shadow: 0 0 22px rgba(59, 139, 255, 0.28); transition: box-shadow .25s ease, transform .15s ease; }
+.btn-glow:hover { box-shadow: 0 0 36px rgba(59, 139, 255, 0.48); transform: translateY(-1px); }
 
 /* ------------------------------------------------------------ empty state */
 .empty-dot {
@@ -139,13 +139,13 @@ body.nav-open { overflow: hidden; }
     height: 44px;
     width: 44px;
     border-radius: 9999px;
-    background: rgba(242, 183, 5, 0.12);
+    background: rgba(59, 139, 255, 0.12);
 }
 .empty-dot i {
     height: 10px;
     width: 10px;
     border-radius: 9999px;
-    background: #F2B705;
+    background: #3B8BFF;
 }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

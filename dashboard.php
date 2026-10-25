@@ -90,7 +90,7 @@ require __DIR__ . '/inc/dashboard-sidebar.php';
             <div class="relative h-[86px] w-[86px]">
                 <svg class="h-full w-full -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
                     <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="5"/>
-                    <circle cx="50" cy="50" r="44" fill="none" stroke="#F2B705" stroke-width="5" stroke-linecap="round"
+                    <circle cx="50" cy="50" r="44" fill="none" stroke="#3B8BFF" stroke-width="5" stroke-linecap="round"
                             stroke-dasharray="<?= $circ ?>" stroke-dashoffset="<?= round($circ * (1 - $jobsPercent), 1) ?>"/>
                 </svg>
                 <span class="absolute inset-0 flex items-center justify-center font-display text-[26px] font-semibold text-paper"><?= number_format($user['jobs_completed']) ?></span>
