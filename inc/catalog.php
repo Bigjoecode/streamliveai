@@ -110,7 +110,7 @@ function sleek_tools(): array
         'livestream' => [
             'group' => 'Visual & Video', 'name' => 'Livestream', 'featured' => true,
             'blurb' => 'Real-time full body swap for streaming, billed per second.',
-            'price' => '2 credits / sec', 'credits' => 2, 'href' => 'livestream',
+            'price' => '3 credits / sec', 'credits' => 3, 'href' => 'livestream',
         ],
         'image-to-video' => [
             'group' => 'Visual & Video', 'name' => 'Image to Video',

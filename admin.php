@@ -654,6 +654,12 @@ admin_layout_open($titles[$adminView], $admin, $notice, $noticeBad, $adminView);
         <div class="actions"><button>Save</button></div>
     </form>
 </section>
+<section class="card">
+    <h3>Server upload limits</h3>
+    <?php $upMax = (string) ini_get('upload_max_filesize'); $postMax = (string) ini_get('post_max_size'); $tight = sleek_ini_bytes($upMax) < 10 * 1048576 || sleek_ini_bytes($postMax) < 32 * 1048576; ?>
+    <p class="muted">upload_max_filesize <strong><?= e($upMax) ?></strong> · post_max_size <strong><?= e($postMax) ?></strong> · PHP <?= e(PHP_VERSION) ?>
+    <?php if ($tight): ?><br><span style="color:#ffb3b3">Too low for the tools (they take files up to 10 MB; Voice Cloning sends up to 3 at once). In cPanel → Select PHP Version → Options, set upload_max_filesize to 12M and post_max_size to 40M.</span><?php endif; ?></p>
+</section>
 <section class="stats" aria-label="Connection status">
     <?php foreach ($providers as $name => $connected): ?>
         <div class="stat"><div class="label"><?= e($name) ?></div><div class="value" style="font-size:16px;color:<?= $connected ? '#8fe0aa' : 'var(--muted)' ?>"><?= $connected ? '✓ Configured' : 'Keys missing' ?></div></div>

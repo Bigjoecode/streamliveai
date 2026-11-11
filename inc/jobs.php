@@ -91,6 +91,13 @@ function sleek_request_too_large(): bool
     return $len > 0 && $len > sleek_ini_bytes((string) ini_get('post_max_size'));
 }
 
+/** The per-file limit actually in force: ours, or the server's upload_max_filesize if lower. */
+function sleek_upload_limit(int $ours): int
+{
+    $ini = sleek_ini_bytes((string) ini_get('upload_max_filesize'));
+    return $ini > 0 ? min($ours, $ini) : $ours;
+}
+
 function sleek_ini_bytes(string $v): int
 {
     $v = trim($v);
@@ -108,7 +115,7 @@ function sleek_ini_bytes(string $v): int
 function sleek_check_audio_upload(mixed $file, int $maxBytes): array
 {
     $fail = fn(string $msg) => ['ok' => false, 'error' => $msg, 'path' => null, 'mime' => null, 'ext' => null, 'name' => null];
-    $mb   = intdiv($maxBytes, 1024 * 1024);
+    $mb   = max(1, intdiv(sleek_upload_limit($maxBytes), 1024 * 1024));
 
     if (!is_array($file) || !isset($file['error']) || is_array($file['error'])) return $fail('Choose an audio file to upload.');
 

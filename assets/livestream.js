@@ -7,7 +7,7 @@
  */
 
 // Pinned: a new SDK version must be tested before the page picks it up.
-const SDK_URL = 'https://cdn.jsdelivr.net/npm/@decartai/sdk@0.2.8/+esm';
+const SDK_URL = 'https://cdn.jsdelivr.net/npm/@decartai/sdk@0.2.14/+esm';
 // Asks for a photoreal likeness that follows the camera closely; the reference photo carries the identity.
 const DEFAULT_LOOK = 'Replace me with the person in the reference photo: same face, hair and skin tone, photorealistic, '
     + 'natural lighting and skin texture. Follow my exact head movements, facial expressions, lip movements and gestures.';
@@ -166,7 +166,7 @@ ui.form.addEventListener('submit', async (ev) => {
     ui.msg.classList.add('hidden');
 
     // 1. Camera first — nothing has been charged yet.
-    const model = sdk.models.realtime(root.dataset.model || 'lucy-2.5');
+    const model = sdk.models.realtime(root.dataset.model || 'lucy-2.6');
     let stream;
     try {
         stream = await navigator.mediaDevices.getUserMedia({

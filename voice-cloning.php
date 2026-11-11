@@ -23,7 +23,8 @@ $str = fn(string $k): string => is_string($_POST[$k] ?? null) ? $_POST[$k] : '';
 
 if (sleek_is_post()) {
     if (sleek_request_too_large()) {
-        sleek_flash('error', 'Those samples are too large together. Keep each under 10 MB.');
+        sleek_jobs_log('voice-cloning rejected: request ' . (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) . ' bytes > post_max_size ' . ini_get('post_max_size'));
+        sleek_flash('error', 'Those samples are too large together. Keep the total under ' . intdiv(sleek_ini_bytes((string) ini_get('post_max_size')), 1048576) . ' MB.');
         sleek_redirect('voice-cloning');
     }
     csrf_verify();
@@ -41,7 +42,12 @@ if (sleek_is_post()) {
     } else {
         foreach ($files as $f) {
             $up = sleek_check_audio_upload($f, CLONE_SAMPLE_MAX_BYTES);
-            if (!$up['ok']) { $errors[] = $up['error']; break; }
+            if (!$up['ok']) {
+                $sniff = is_string($f['tmp_name'] ?? null) && is_file($f['tmp_name']) ? (string) (new finfo(FILEINFO_MIME_TYPE))->file($f['tmp_name']) : '-';
+                sleek_jobs_log("voice-cloning rejected sample: {$up['error']} (upload error {$f['error']}, {$f['size']} bytes, detected {$sniff})");
+                $errors[] = $up['error'];
+                break;
+            }
             $samples[] = ['path' => $up['path'], 'mime' => $up['mime'], 'name' => 'sample-' . (count($samples) + 1) . '.' . $up['ext']];
         }
     }
@@ -57,6 +63,7 @@ if (sleek_is_post()) {
     }
 
     if ($errors) {
+        sleek_jobs_log('voice-cloning form error for user #' . (int) $me['id'] . ': ' . $errors[0]);
         // Keep what they typed; files can't be kept across a redirect.
         $_SESSION['clone_old'] = ['voice_name' => $voiceName, 'script' => $script];
         sleek_flash('error', $errors[0]);
@@ -135,7 +142,7 @@ $canAfford = $user['credits'] >= $tool['credits'];
     <form method="POST" action="voice-cloning" enctype="multipart/form-data" data-job-form
           class="mt-7 space-y-6 rounded-xl border border-border bg-surface p-5 sm:p-7">
         <?= csrf_field() ?>
-        <input type="hidden" name="MAX_FILE_SIZE" value="<?= CLONE_SAMPLE_MAX_BYTES ?>">
+        <input type="hidden" name="MAX_FILE_SIZE" value="<?= sleek_upload_limit(CLONE_SAMPLE_MAX_BYTES) ?>">
 
         <div>
             <label for="samples" class="block text-[14.5px] text-muted">Voice samples</label>
@@ -143,7 +150,7 @@ $canAfford = $user['credits'] >= $tool['credits'];
                    class="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-border bg-ink/60 px-6 py-8 text-center transition-colors hover:border-signal/50">
                 <span class="empty-dot" aria-hidden="true"><i></i></span>
                 <span class="mt-4 text-[14.5px] text-paper" data-drop-label>Choose up to <?= CLONE_MAX_SAMPLES ?> files, or drop them here</span>
-                <span class="mt-1 text-[12.5px] text-muted">Only one speaker, no music · MP3, WAV, M4A… · up to 10 MB each</span>
+                <span class="mt-1 text-[12.5px] text-muted">Only one speaker, no music · MP3, WAV, M4A… · up to <?= intdiv(sleek_upload_limit(CLONE_SAMPLE_MAX_BYTES), 1048576) ?> MB each</span>
             </label>
             <input id="samples" name="samples[]" type="file" multiple required class="sr-only"
                    accept="audio/*,video/mp4,video/webm,video/quicktime">

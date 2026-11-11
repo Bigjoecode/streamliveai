@@ -154,13 +154,13 @@ function sleek_live_diag_log(int $jobId, int $userId, string $raw): void
 }
 
 /**
- * Decart speed tier, set at /admin-providers: 'standard', or 'fast' — lower latency
- * and smoother motion at twice Decart's per-second price (Lucy 2.5 supports it).
+ * Decart speed tier, set at /admin-providers (default 'fast'): 'standard', or 'fast' — lower latency
+ * and smoother motion at twice Decart's per-second price (Lucy 2.5 and 2.6 support it).
  */
 function sleek_live_speed(): string
 {
     require_once __DIR__ . '/settings.php';
-    return sleek_setting('live_speed', 'standard') === 'fast' ? 'fast' : 'standard';
+    return sleek_setting('live_speed', 'fast') === 'fast' ? 'fast' : 'standard';
 }
 
 /**

@@ -110,13 +110,14 @@ return [
         'api_key' => '',
 
         'api_base'    => 'https://api.decart.ai',
-        // Livestream. Lucy 2.5 is Decart's recommended realtime model (720p; better
-        // likeness to the reference photo and tracking of face, lips and body than 2.1).
-        // Pinned rather than 'lucy-latest' so it can't change underneath the site.
-        'model'       => 'lucy-2.5',
+        // Livestream. Lucy 2.6 (Nov 2026) is Decart's newest realtime model: 720p/30fps,
+        // character reference photos + text edits in one model, fast mode supported.
+        // Needs @decartai/sdk >= 0.2.14 (assets/livestream.js). Pinned rather than
+        // 'lucy-latest' so it can't change underneath the site.
+        'model'       => 'lucy-2.6',
         'image_model' => 'lucy-image-2',   // AI Image Edit: POST /v1/generate/{image_model}
 
-        'credits_per_second'     => 2,
+        'credits_per_second'     => 3,   // 3 since Nov 2026: covers fast mode (2x Decart rate)
         'bill_increment_seconds' => 2,        // "metered every 2 seconds"
         'session_minutes'        => [1, 5, 10, 15, 30],
 
