@@ -347,7 +347,7 @@ if ($adminView === 'overview') {
     $signups14 = array_sum($days);
 
     $recentUsers = $db->query('SELECT id, name, email, created_at FROM users ORDER BY id DESC LIMIT 6')->fetchAll();
-    $recentPayments = $db->query('SELECT p.user_id, p.pack_key, p.amount_kobo, p.currency, p.status, p.provider, p.created_at, u.name
+    $recentPayments = $db->query('SELECT p.user_id, p.pack_key, p.amount_kobo, p.currency, p.status, p.provider, p.gateway_response, p.created_at, u.name
                                   FROM payments p JOIN users u ON u.id = p.user_id ORDER BY p.id DESC LIMIT 6')->fetchAll();
     $unreadMessages = $db->query('SELECT id, name, message, created_at FROM contact_messages WHERE read_at IS NULL ORDER BY id DESC LIMIT 3')->fetchAll();
 
@@ -431,8 +431,8 @@ admin_layout_open($titles[$adminView], $admin, $notice, $noticeBad, $adminView);
         <?php if (!$recentPayments): ?><p class="muted">No payments yet. They'll appear here as soon as someone buys a pack.</p><?php else: ?>
         <ul class="list">
             <?php foreach ($recentPayments as $pm): ?>
-                <li><div class="main"><a href="admin-user?id=<?= (int) $pm['user_id'] ?>"><?= e($pm['name']) ?></a><small><?= e(sleek_pack($pm['pack_key'])['name'] ?? $pm['pack_key']) ?> · <?= e(sleek_admin_payment_method((string) $pm['provider'])) ?> · <?= e($ago((int) $pm['created_at'])) ?></small></div>
-                    <div class="end"><div><?= sleek_money((int) $pm['amount_kobo'], (string) $pm['currency']) ?></div><span class="status <?= e($pm['status']) ?>"><?= e($pm['status'] === 'success' ? 'Paid' : ucfirst((string) $pm['status'])) ?></span></div></li>
+                <li><div class="main"><a href="admin-user?id=<?= (int) $pm['user_id'] ?>"><?= e($pm['name']) ?></a><small><?= e(sleek_pack($pm['pack_key'])['name'] ?? $pm['pack_key']) ?> · <?= e(sleek_admin_payment_method((string) $pm['provider'])) ?> · <?= e($ago((int) $pm['created_at'])) ?></small><?php if ($pm['status'] !== 'success' && (string) ($pm['gateway_response'] ?? '') !== ''): ?><small style="overflow-wrap:anywhere;color:var(--muted)">Why: <?= e($pm['gateway_response']) ?></small><?php endif; ?></div>
+                    <div class="end"><div><?= sleek_money((int) $pm['amount_kobo'], (string) $pm['currency']) ?></div><span class="status <?= e($pm['status']) ?>"><?= e(match ((string) $pm['status']) { 'success' => 'Paid', 'abandoned' => 'Not completed', default => ucfirst((string) $pm['status']) }) ?></span></div></li>
             <?php endforeach; ?>
         </ul>
         <?php endif; ?>
@@ -653,6 +653,13 @@ admin_layout_open($titles[$adminView], $admin, $notice, $noticeBad, $adminView);
         <label class="check"><input type="radio" name="live_speed" value="fast"<?= $liveSpeed === 'fast' ? ' checked' : '' ?>> Fast — lowest latency (2× Decart cost)</label>
         <div class="actions"><button>Save</button></div>
     </form>
+</section>
+<section class="card">
+    <h3>Flutterwave webhook</h3>
+    <?php $flwAt = (int) sleek_setting('flw_webhook_at', 0); ?>
+    <p class="muted">Last valid webhook: <strong><?= $flwAt ? e(date('Y-m-d H:i', $flwAt)) : 'never' ?></strong>.
+    Without it, a payment only settles when the buyer comes back to the site (or opens Credits &amp; billing, which re-checks recent ones).
+    In Flutterwave → Settings → Webhooks set the URL to <code style="overflow-wrap:anywhere"><?= e(sleek_url('flutterwave-webhook')) ?></code>, tick charge.completed, and use the same secret hash saved below.</p>
 </section>
 <section class="card">
     <h3>Server upload limits</h3>

@@ -15,7 +15,9 @@ if (!sleek_is_payment_reference($reference)) {
 }
 
 try {
-    $result = sleek_fulfil_payment($reference, sleek_flutterwave_verify($reference));
+    $tx     = sleek_flutterwave_verify($reference);
+    $result = sleek_fulfil_payment($reference, $tx);
+    sleek_payments_log("FLW CALLBACK {$reference}: {$result} — {$tx['gateway']}");
 } catch (Throwable $e) {
     sleek_payments_log("FLW CALLBACK verify failed for {$reference}: " . $e->getMessage());
     // A buyer who closed the checkout leaves no transaction to verify. Anything

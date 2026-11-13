@@ -233,6 +233,60 @@ function sleek_referral_bonus(array $payment): void
 }
 
 /**
+ * Ask the provider again what happened to one payment, and apply the answer.
+ * Flutterwave only — NOWPayments reports through its IPN. Used by the admin
+ * "Re-check" button and by the sweep below, so a payment never stays stuck just
+ * because the webhook or the buyer's redirect back didn't arrive.
+ *
+ * @return string a sleek_fulfil_payment() result, or 'abandoned' / 'skipped'
+ */
+function sleek_payment_recheck(string $reference): string
+{
+    $p = sleek_payment_find($reference);
+    if (!$p) return 'unknown';
+    if ($p['status'] === 'success') return 'already';
+    if ($p['provider'] !== 'flutterwave' || !sleek_flutterwave_configured()) return 'skipped';
+
+    try {
+        $tx = sleek_flutterwave_verify($reference);
+    } catch (SleekPaymentError $e) {
+        // Flutterwave keeps no record until the buyer actually submits a payment,
+        // so "not found" means the checkout page was opened and left.
+        if (stripos($e->getMessage(), 'No transaction was found') === false) throw $e;
+        $old = time() - (int) $p['created_at'] > 6 * 3600;
+        sleek_payment_note($reference, 'Checkout not completed — no payment was attempted at Flutterwave', $old ? 'abandoned' : null);
+        sleek_payments_log("FLW RECHECK {$reference}: no transaction at Flutterwave" . ($old ? ' (marked abandoned)' : ''));
+        return $old ? 'abandoned' : 'pending';
+    }
+    $result = sleek_fulfil_payment($reference, $tx);
+    sleek_payments_log("FLW RECHECK {$reference}: {$result} — {$tx['gateway']}");
+    return $result;
+}
+
+/**
+ * Re-verify one buyer's recent unfinished Flutterwave payments. Called when they
+ * open Credits & billing; throttled to once a minute per session, at most five
+ * payments, none older than 3 days. Errors are logged, never shown.
+ */
+function sleek_payments_sweep_user(int $userId): void
+{
+    if (!sleek_flutterwave_configured()) return;
+    if (($_SESSION['pay_sweep_at'] ?? 0) > time() - 60) return;
+    $_SESSION['pay_sweep_at'] = time();
+
+    $stmt = sleek_db()->prepare("SELECT reference FROM payments WHERE user_id = ? AND provider = 'flutterwave' AND status = 'pending'
+                                 AND created_at BETWEEN ? AND ? ORDER BY id DESC LIMIT 5");
+    $stmt->execute([$userId, time() - 3 * 86400, time() - 60]);
+    foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $ref) {
+        try {
+            sleek_payment_recheck((string) $ref);
+        } catch (Throwable $e) {
+            sleek_payments_log("FLW RECHECK {$ref} error: " . $e->getMessage());
+        }
+    }
+}
+
+/**
  * Flash the buyer-facing message for a fulfilment result and send them on —
  * shared by every provider's callback page.
  */

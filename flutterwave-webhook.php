@@ -29,6 +29,10 @@ if (!sleek_flutterwave_webhook_valid((string) ($_SERVER['HTTP_VERIF_HASH'] ?? ''
     exit;
 }
 
+// Shown at /admin-providers, so a webhook that stops arriving is noticed.
+require_once __DIR__ . '/inc/settings.php';
+sleek_setting_set('flw_webhook_at', time());
+
 $event = json_decode($raw, true);
 $reference = is_array($event) ? (string) ($event['data']['tx_ref'] ?? '') : '';
 

@@ -204,7 +204,7 @@ function sleek_admin_user_activity(int $id): array
     $db = sleek_db();
     $ledger = $db->prepare('SELECT delta, balance_after, kind, description, created_at FROM credit_ledger WHERE user_id = ? ORDER BY id DESC LIMIT 15');
     $ledger->execute([$id]);
-    $payments = $db->prepare('SELECT provider, reference, pack_key, credits, amount_kobo, currency, status, created_at FROM payments WHERE user_id = ? ORDER BY id DESC LIMIT 10');
+    $payments = $db->prepare('SELECT provider, reference, pack_key, credits, amount_kobo, currency, status, gateway_response, created_at FROM payments WHERE user_id = ? ORDER BY id DESC LIMIT 10');
     $payments->execute([$id]);
     $jobs = $db->prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS done FROM jobs WHERE user_id = ?");
     $jobs->execute([$id]);

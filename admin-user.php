@@ -47,6 +47,26 @@ if (sleek_is_post()) {
         [$html, $text] = sleek_reset_email($user['name'], $link, intdiv($ttl, 60));
         $ok = sleek_send_mail($user['email'], $user['name'], 'Reset your ' . sleek_config('brand_name') . ' password', $html, $text);
         sleek_redirect($here . '&done=' . ($ok ? 'reset' : 'mailfail'));
+    } elseif ($action === 'recheck_payment') {
+        require_once __DIR__ . '/inc/payments.php';
+        $ref = $str('reference');
+        $own = sleek_is_payment_reference($ref) ? sleek_payment_find($ref) : null;
+        if (!$own || (int) $own['user_id'] !== $id) sleek_redirect($here);
+        try {
+            $_SESSION['recheck_result'] = $ref . ': ' . match (sleek_payment_recheck($ref)) {
+                'credited'  => 'paid — credits added now.',
+                'already'   => 'already paid and credited.',
+                'failed'    => 'Flutterwave reports it failed (reason shown below).',
+                'pending'   => 'still pending at Flutterwave.',
+                'abandoned' => 'the buyer never completed checkout — marked Not completed.',
+                'mismatch'  => 'amount or currency didn\'t match — NOT credited. See payments.log.',
+                'skipped'   => 'only Naira (Flutterwave) payments can be re-checked here.',
+                default     => 'payment not found.',
+            };
+        } catch (Throwable $e) {
+            $_SESSION['recheck_result'] = $ref . ': could not reach Flutterwave — ' . $e->getMessage();
+        }
+        sleek_redirect($here . '&done=recheck');
     } elseif ($action === 'send_welcome') {
         require_once __DIR__ . '/inc/emails.php';
         sleek_redirect($here . '&done=' . (sleek_send_welcome_email($id) ? 'welcome' : 'mailfail'));
@@ -71,8 +91,10 @@ $notice ??= match ($_GET['done'] ?? '') {
     'reset'    => 'Password link emailed to ' . $user['email'] . '.',
     'welcome'  => 'Welcome email sent to ' . $user['email'] . '.',
     'mailfail' => 'The email could not be sent: ' . (sleek_mail_last_error() ?: 'check Email settings.'),
+    'recheck'  => 'Re-checked ' . ($_SESSION['recheck_result'] ?? ''),
     default    => null,
 };
+unset($_SESSION['recheck_result']);
 if (($_GET['done'] ?? '') === 'mailfail') $noticeBad = true;
 
 $activity = sleek_admin_user_activity($id);
@@ -168,8 +190,12 @@ admin_layout_open($user['name'], $admin, $notice, $noticeBad, 'accounts');
                 <td data-label="Pack"><?= e((sleek_pack($pm['pack_key'])['name'] ?? $pm['pack_key'])) ?> · <?= number_format((int) $pm['credits']) ?> cr</td>
                 <td data-label="Amount"><?= sleek_money((int) $pm['amount_kobo'], (string) $pm['currency']) ?></td>
                 <td data-label="Via"><?= e(sleek_admin_payment_method((string) $pm['provider'])) ?></td>
-                <td data-label="Status"><?= e($pm['status']) ?></td>
-                <td data-label="Reference"><code><?= e($pm['reference']) ?></code></td>
+                <td data-label="Status"><?= e($pm['status'] === 'abandoned' ? 'not completed' : $pm['status']) ?>
+                    <?php if ((string) ($pm['gateway_response'] ?? '') !== ''): ?><br><small class="muted" style="overflow-wrap:anywhere"><?= e($pm['gateway_response']) ?></small><?php endif; ?></td>
+                <td data-label="Reference"><code><?= e($pm['reference']) ?></code>
+                    <?php if ($pm['provider'] === 'flutterwave' && $pm['status'] !== 'success'): ?>
+                    <form method="post" action="admin-user?id=<?= (int) $id ?>" style="margin-top:6px"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $id ?>"><input type="hidden" name="action" value="recheck_payment"><input type="hidden" name="reference" value="<?= e($pm['reference']) ?>"><button class="ghost">Re-check with Flutterwave</button></form>
+                    <?php endif; ?></td>
             </tr>
         <?php endforeach; ?>
         </tbody>

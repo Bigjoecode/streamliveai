@@ -1,4 +1,10 @@
 <?php
+// Settle any Naira payment the webhook or redirect left unfinished — before the
+// dashboard header loads the balance and the transaction list.
+require_once __DIR__ . '/inc/bootstrap.php';
+require_once __DIR__ . '/inc/payments.php';
+if ($sweepUser = current_user()) sleek_payments_sweep_user((int) $sweepUser['id']);
+
 $pageTitle = 'Credits & billing';
 $active    = 'billing';
 require __DIR__ . '/inc/dashboard-head.php';
@@ -15,6 +21,7 @@ $statusPill = [
     'success' => ['Paid',        'border-reel/35 bg-reel/10 text-reel'],
     'failed'  => ['Failed',      'border-tally/35 bg-tally/10 text-tally'],
     'pending' => ['In progress', 'border-signal/35 bg-signal/10 text-signal'],
+    'abandoned' => ['Not completed', 'border-border text-muted'],
 ];
 $flashStyle = [
     'success' => 'border-reel/40 bg-reel/10',
