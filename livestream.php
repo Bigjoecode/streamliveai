@@ -28,17 +28,17 @@ $canCall = sleek_daily_configured();
 
 // Background presets: the label users see => what it adds to the prompt.
 $backgrounds = [
-    'office'         => ['Modern Office',  'in a modern office with glass walls and soft daylight'],
-    'bedroom'        => ['Cozy Bedroom',   'in a cozy bedroom with warm lamp light'],
-    'studio'         => ['Podcast Studio', 'in a podcast studio with microphones and acoustic panels'],
-    'beach'          => ['Beach Sunset',   'on a beach at golden-hour sunset'],
-    'city'           => ['City Skyline',   'in front of a city skyline at dusk'],
-    'nature'         => ['Forest',         'in a green forest with soft sunlight'],
-    'city_street'    => ['City Street',    'on a busy city street'],
-    'private_jet'    => ['Private Jet',    'inside a private jet cabin with cream leather seats'],
-    'airport_lounge' => ['Airport Lounge', 'in an airport lounge with large windows'],
-    'space_station'  => ['Space Station',  'inside a space station with Earth visible through the window'],
-    'hospital_ward'  => ['Hospital Ward',  'in a hospital ward'],
+    'office'         => ['Modern Office',  'in a modern office with glass walls and soft daylight', 'office.jpg'],
+    'bedroom'        => ['Cozy Bedroom',   'in a cozy bedroom with warm lamp light', 'bedroom.jpg'],
+    'studio'         => ['Podcast Studio', 'in a podcast studio with microphones and acoustic panels', 'studio.jpg'],
+    'beach'          => ['Beach Sunset',   'on a beach at golden-hour sunset', 'beach.jpg'],
+    'city'           => ['City Skyline',   'in front of a city skyline at dusk', 'city.jpg'],
+    'nature'         => ['Forest',         'in a green forest with soft sunlight', 'nature.jpg'],
+    'city_street'    => ['City Street',    'on a busy city street', 'city_street.jpg'],
+    'private_jet'    => ['Private Jet',    'inside a private jet cabin with cream leather seats', 'private_jet.jpg'],
+    'airport_lounge' => ['Airport Lounge', 'in an airport lounge with large windows', 'airport_lounge.jpg'],
+    'space_station'  => ['Space Station',  'inside a space station with Earth visible through the window', 'space_station.jpg'],
+    'hospital_ward'  => ['Hospital Ward',  'in a hospital ward', 'hospital_ward.jpg'],
 ];
 $chips = ['soft studio light', 'sharp focus', 'warm lighting'];
 
@@ -133,10 +133,13 @@ $chip = 'flex items-center gap-2.5 rounded-lg border border-border bg-ink/60 px-
                         <input type="radio" name="background" value="none" class="peer sr-only" checked>
                         <span class="block rounded-lg border border-border bg-ink px-2 py-2 text-center text-[13px] text-paper peer-checked:border-signal/60 peer-checked:bg-signal/10">None</span>
                     </label>
-                    <?php foreach ($backgrounds as $k => [$label, $prompt]): ?>
-                        <label class="cursor-pointer">
+                    <?php foreach ($backgrounds as $k => [$label, $prompt, $image]): ?>
+                        <label class="group cursor-pointer">
                             <input type="radio" name="background" value="<?= e($k) ?>" data-prompt="<?= e($prompt) ?>" class="peer sr-only">
-                            <span class="block rounded-lg border border-border bg-ink px-2 py-2 text-center text-[13px] text-paper peer-checked:border-signal/60 peer-checked:bg-signal/10"><?= e($label) ?></span>
+                            <span class="block overflow-hidden rounded-lg border border-border bg-ink text-paper transition-colors peer-checked:border-signal/60 peer-checked:bg-signal/10">
+                                <img src="assets/backgrounds/<?= e($image) ?>" alt="" loading="lazy" decoding="async" class="h-20 w-full object-cover transition-opacity group-hover:opacity-90">
+                                <span class="block truncate px-2 py-2 text-center text-[12px]"><?= e($label) ?></span>
+                            </span>
                         </label>
                     <?php endforeach; ?>
                 </div>
