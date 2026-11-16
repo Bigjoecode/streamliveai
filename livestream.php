@@ -264,7 +264,7 @@ $chip = 'flex items-center gap-2.5 rounded-lg border border-border bg-ink/60 px-
             <!-- Group call -->
             <div class="rounded-xl border border-border bg-surface p-4 sm:p-5">
                 <p class="text-[15px] font-medium text-paper">Group call</p>
-                <p class="mt-1 text-[12.5px] text-muted">Create a link so others can join you live, like a video call. They see your AI video — marked “AI” — as your camera.</p>
+                <p class="mt-1 text-[12.5px] text-muted">Create a link so others can join you live, like a video call.</p>
                 <?php if (!$canCall): ?>
                     <p class="mt-3 text-[12.5px] text-muted">Group calls aren't switched on yet.</p>
                 <?php endif; ?>
