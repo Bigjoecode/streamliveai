@@ -8,8 +8,8 @@
  * provider disconnect, error, time limit, closing the tab — reports the seconds
  * used so unused time can be refunded.
  *
- * Anything that leaves this page as video (Telegram clips, group calls) is drawn
- * through a canvas that stamps an "AI-generated" label on it.
+ * Outbound video is copied through a canvas only when it needs a square crop for
+ * Telegram video notes; the stream and recording contain no added overlay.
  */
 
 // Pinned: a new SDK version must be tested before the page picks it up.
@@ -27,7 +27,6 @@ const TICK_MS = 5000;
 const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const PHOTO_MAX = 10 * 1024 * 1024;
 const CLIP_MAX_SEC = 60;
-const AI_LABEL = 'AI-generated';
 
 const root = document.querySelector('[data-live]');
 const $ = (id) => document.getElementById(id);
@@ -249,13 +248,13 @@ function diagPayload() {
     return s.length > 7500 ? JSON.stringify({ ...live.diag, samples: live.diag.samples.slice(-15) }) : s;
 }
 
-/* -------------------------------------------------- labelled outbound video */
+/* --------------------------------------------------------- outbound video */
 
 /**
- * A canvas copy of the AI output with the "AI-generated" label drawn on it.
- * square=true crops the middle for Telegram's round video notes.
+ * A canvas copy used for outbound video. square=true crops the middle for
+ * Telegram's round video notes.
  */
-function labelledStream(square) {
+function outboundStream(square) {
     const w = square ? 480 : 1280, h = square ? 480 : 720;
     const canvas = document.createElement('canvas');
     canvas.width = w; canvas.height = h;
@@ -273,16 +272,6 @@ function labelledStream(square) {
             ctx.fillStyle = '#0b1020';
             ctx.fillRect(0, 0, w, h);
         }
-        const fs = Math.round(h * (square ? 0.05 : 0.035));
-        ctx.font = `600 ${fs}px system-ui, sans-serif`;
-        const pad = Math.round(fs * 0.5);
-        const tw = ctx.measureText(AI_LABEL).width;
-        const x = square ? (w - tw) / 2 - pad : Math.round(w * 0.02);
-        const y = h - fs * 2.6;
-        ctx.fillStyle = 'rgba(0,0,0,0.55)';
-        ctx.fillRect(x, y, tw + pad * 2, fs + pad);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(AI_LABEL, x + pad, y + fs * 0.95);
     };
     // A timer keeps drawing when the tab is in the background (requestAnimationFrame would stop).
     const timer = setInterval(() => { if (!stopped) draw(); }, 1000 / 30);
@@ -666,7 +655,7 @@ ui.tgRec.addEventListener('click', () => {
     discardClip();
     const mimeType = recorderType();
     if (!mimeType) return say('This browser can\'t record video. Try Chrome or Edge.', 'error');
-    const feed = labelledStream(true);
+    const feed = outboundStream(true);
     const recorder = new MediaRecorder(feed.stream, { mimeType, videoBitsPerSecond: 1_200_000 });
     rec = { recorder, feed, chunks: [], started: performance.now(), mime: mimeType.startsWith('video/mp4') ? 'video/mp4' : 'video/webm' };
     recorder.ondataavailable = (e) => { if (e.data && e.data.size) rec.chunks.push(e.data); };
@@ -746,7 +735,7 @@ ui.callStart.addEventListener('click', async () => {
     }
     try {
         const Daily = (await loadSdk(DAILY_SDK)).default;
-        live.callFeed = labelledStream(false);
+        live.callFeed = outboundStream(false);
         const call = Daily.createCallObject({
             videoSource: live.callFeed.track,
             audioSource: live.mic ? live.mic.getAudioTracks()[0] : false,

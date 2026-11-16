@@ -247,7 +247,7 @@ $chip = 'flex items-center gap-2.5 rounded-lg border border-border bg-ink/60 px-
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <p class="text-[15px] font-medium text-paper">Telegram video note</p>
-                        <p class="mt-1 text-[12.5px] text-muted">Record up to 60 seconds of your live output and send it to your own Telegram. Clips carry an “AI-generated” label.</p>
+                        <p class="mt-1 text-[12.5px] text-muted">Record up to 60 seconds of your live output and send it to your own Telegram.</p>
                     </div>
                     <button type="button" id="tgConnect" class="rounded-lg border border-border px-3.5 py-2 text-[13px] text-paper hover:border-signal/40">Connect Telegram</button>
                 </div>
