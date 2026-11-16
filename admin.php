@@ -42,6 +42,8 @@ function sleek_admin_key_fields(): array
 {
     return [
         'decart_key'          => ['decart',      'api_key',      'Decart key'],
+        'xmax_key'            => ['xmax',        'api_key',      'XMAX permanent API key (uk-…)'],
+        'daily_key'           => ['daily',       'api_key',      'Daily.co API key (group calls)'],
         'elevenlabs_key'      => ['elevenlabs',  'api_key',      'ElevenLabs key'],
         'fal_key'             => ['fal',         'api_key',      'fal.ai key'],
         'flutterwave_key'     => ['flutterwave', 'secret_key',   'Flutterwave secret key'],
@@ -298,6 +300,8 @@ $unread = sleek_contact_unread_count();
 $q = is_string($_GET['q'] ?? null) ? mb_substr(trim($_GET['q']), 0, 100) : '';
 $providers = [
     'Decart' => sleek_config('decart')['api_key'] !== '',
+    'XMAX (X2.1 / X2.0)' => sleek_config('xmax')['api_key'] !== '',
+    'Daily.co (group calls)' => sleek_config('daily')['api_key'] !== '',
     'ElevenLabs' => sleek_config('elevenlabs')['api_key'] !== '',
     'fal.ai' => sleek_config('fal')['api_key'] !== '',
     'Flutterwave' => sleek_config('flutterwave')['secret_key'] !== '' && sleek_config('flutterwave')['webhook_hash'] !== '',

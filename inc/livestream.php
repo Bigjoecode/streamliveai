@@ -21,6 +21,31 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/jobs.php';
 require_once __DIR__ . '/decart.php';
+require_once __DIR__ . '/xmax.php';
+require_once __DIR__ . '/daily.php';
+
+/**
+ * Engines a user can pick, in display order — only those whose provider key is
+ * set. Every engine costs the same credits per second.
+ *
+ * @return array<string, array{label: string, note: string, provider: string, model: string}>
+ */
+function sleek_live_engines(): array
+{
+    $out = [];
+    if (sleek_xmax_configured()) {
+        foreach (sleek_xmax_models() as $id => $label) {
+            $out[(string) $id] = ['label' => (string) $label, 'note' => $id === 'x2.1' ? 'Newer model' : 'Original model',
+                                  'provider' => 'xmax', 'model' => (string) $id];
+        }
+    }
+    if (sleek_decart_configured()) {
+        $model = (string) sleek_config('decart')['model'];
+        $out['decart'] = ['label' => ucfirst(str_replace('lucy-', 'Lucy ', $model)), 'note' => sleek_live_speed() === 'fast' ? 'Fastest mode' : 'Decart',
+                          'provider' => 'decart', 'model' => $model];
+    }
+    return $out;
+}
 
 /** Seconds the client token may be used to open the connection. */
 const SLEEK_LIVE_TOKEN_TTL = 60;
@@ -94,13 +119,14 @@ function sleek_live_active(int $userId): ?array
 /**
  * Charge for a session and get a token to open it.
  *
- * @return array{job: int, token: string, model: string, speed: string, max_seconds: int}
+ * @return array{job: int, token: string, engine: string, provider: string, model: string, speed: string, max_seconds: int}
  * @throws SleekInsufficientCredits|SleekLiveBusy|SleekProviderError
  */
-function sleek_live_start(int $userId, int $minutes, int $consentAt): array
+function sleek_live_start(int $userId, int $minutes, int $consentAt, string $engineId = 'decart'): array
 {
     $cfg = sleek_config('decart');
     if (!in_array($minutes, $cfg['session_minutes'], true)) throw new InvalidArgumentException('Pick one of the listed session lengths.');
+    $engine = sleek_live_engines()[$engineId] ?? throw new InvalidArgumentException('That AI model isn\'t available right now. Pick another.');
 
     if (sleek_live_active($userId) !== null) {
         throw new SleekLiveBusy('You already have a live session. End it before starting another.');
@@ -113,12 +139,17 @@ function sleek_live_start(int $userId, int $minutes, int $consentAt): array
     $jobId = sleek_job_start($userId, 'livestream', "{$minutes}-minute session", $consentAt, $reserved);
 
     $now = time();
-    sleek_db()->prepare('INSERT INTO live_sessions (job_id, user_id, max_seconds, reserved_credits, token_expires_at, created_at)
-                         VALUES (?, ?, ?, ?, ?, ?)')
-              ->execute([$jobId, $userId, $seconds, $reserved, $now + SLEEK_LIVE_TOKEN_TTL, $now]);
+    sleek_db()->prepare('INSERT INTO live_sessions (job_id, user_id, max_seconds, reserved_credits, token_expires_at, created_at, engine)
+                         VALUES (?, ?, ?, ?, ?, ?, ?)')
+              ->execute([$jobId, $userId, $seconds, $reserved, $now + SLEEK_LIVE_TOKEN_TTL, $now, $engineId]);
 
     try {
-        $tok = sleek_decart_mint_token($seconds, ['sleekai_job' => $jobId, 'sleekai_user' => $userId]);
+        if ($engine['provider'] === 'xmax') {
+            $tok = sleek_xmax_mint_key($seconds, SLEEK_LIVE_TOKEN_TTL);
+            sleek_db()->prepare('UPDATE live_sessions SET provider_key = ? WHERE job_id = ?')->execute([$tok['token'], $jobId]);
+        } else {
+            $tok = sleek_decart_mint_token($seconds, ['sleekai_job' => $jobId, 'sleekai_user' => $userId]);
+        }
     } catch (Throwable $e) {
         sleek_job_fail($jobId, 'Livestream couldn\'t start. Your credits were refunded.', $e->getMessage());
         throw $e instanceof SleekProviderError ? $e : new SleekProviderError($e->getMessage(), 0, $e);
@@ -129,9 +160,31 @@ function sleek_live_start(int $userId, int $minutes, int $consentAt): array
     sleek_alert('livestream', 'Livestream started', [
         'Account' => $who['name'] . ' <' . $who['email'] . '>',
         'Session' => "{$minutes} min, " . number_format($reserved) . ' credits reserved',
-        'Model'   => $cfg['model'] . (sleek_live_speed() === 'fast' ? ' (fast)' : ''),
+        'Model'   => $engine['provider'] === 'xmax' ? 'XMAX ' . $engine['label'] : $engine['model'] . (sleek_live_speed() === 'fast' ? ' (fast)' : ''),
     ], 'admin-user?id=' . $userId);
-    return ['job' => $jobId, 'token' => $tok['token'], 'model' => $cfg['model'], 'speed' => sleek_live_speed(), 'max_seconds' => $seconds];
+    return ['job' => $jobId, 'token' => $tok['token'], 'engine' => $engineId, 'provider' => $engine['provider'], 'model' => $engine['model'],
+            'speed' => sleek_live_speed(), 'max_seconds' => $seconds];
+}
+
+/**
+ * Open a group-call room for a running session. Guests get the room link; the
+ * host's page joins with the owner token. One room per session; asking again
+ * returns a fresh host token for the same room.
+ *
+ * @return array{url: string, token: string}
+ */
+function sleek_live_call_open(int $jobId, int $userId, string $hostName): array
+{
+    $st = sleek_db()->prepare("SELECT ls.*, j.status FROM live_sessions ls JOIN jobs j ON j.id = ls.job_id WHERE ls.job_id = ? AND ls.user_id = ?");
+    $st->execute([$jobId, $userId]);
+    $s = $st->fetch();
+    if (!$s || $s['status'] !== 'processing') throw new InvalidArgumentException('Go live first, then create the call link.');
+    if (!sleek_daily_configured()) throw new SleekProviderError('Daily API key is not set.');
+
+    if (!empty($s['call_room'])) sleek_daily_delete((string) $s['call_room']);   // one room per session
+    $room = sleek_daily_room(sleek_live_deadline($s), $hostName);
+    sleek_db()->prepare('UPDATE live_sessions SET call_room = ? WHERE job_id = ?')->execute([$room['name'], $jobId]);
+    return ['url' => $room['url'], 'token' => $room['token']];
 }
 
 /**
@@ -259,6 +312,10 @@ function sleek_live_settle(int $jobId, bool $silent = false): ?array
         if ($db->inTransaction()) $db->rollBack();
         throw $e;
     }
+
+    // Nothing more may stream on this session's credentials.
+    if (!empty($s['provider_key'])) sleek_xmax_deactivate((string) $s['provider_key']);
+    if (!empty($s['call_room'])) sleek_daily_delete((string) $s['call_room']);
 
     sleek_jobs_log("livestream job #{$jobId} settled: used {$used}s, charged {$charge}, refunded {$refund}"
         . ($silent ? ' (swept' . ($s['reported'] ? '' : ', never reported') . ')' : ''));

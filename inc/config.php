@@ -104,6 +104,28 @@ return [
         'tts_model' => 'eleven_multilingual_v2',
     ],
 
+    'xmax' => [
+        // From platform.xmax.ai → API keys (permanent key, starts with uk-). Powers the
+        // Livestream X2.1 / X2.0 engines. Never sent to browsers: the server issues a
+        // temporary key (tk-) per session, valid only for that session's length.
+        'api_key'     => '',
+        'api_base'    => 'https://api.xmax.ai/open/api/v1',   // the SDK's "global" environment
+        'environment' => 'global',
+        'models'      => ['x2.1' => 'X2.1', 'x2.0' => 'X2.0'],
+        // Ceiling on XMAX points a session's temporary key may spend, per second of
+        // session length. A safety cap against a leaked key, not what users pay —
+        // raise it if sessions stop early with "quota exhausted".
+        'points_per_second_cap' => 60,
+    ],
+
+    'daily' => [
+        // From dashboard.daily.co → Developers → API key. Powers Livestream group calls
+        // (guests join a link and see the AI video as the host's camera).
+        'api_key'    => '',
+        'api_base'   => 'https://api.daily.co/v1',
+        'max_guests' => 9,
+    ],
+
     'decart' => [
         // From platform.decart.ai → API keys (starts with dct_). Powers Livestream.
         // It never reaches the browser: the server mints short-lived client tokens.

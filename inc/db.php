@@ -80,6 +80,19 @@ function sleek_migrate(PDO $pdo): void
             ? "ALTER TABLE payments ADD COLUMN provider VARCHAR(16) NOT NULL DEFAULT 'paystack' AFTER user_id"
             : "ALTER TABLE payments ADD COLUMN provider TEXT NOT NULL DEFAULT 'paystack'");
     }
+
+    // Livestream engine per session (Decart, or an XMAX model) and the XMAX
+    // temporary key to switch off when it ends; each user's linked Telegram chat.
+    $add = function (string $table, string $col, string $mysqlType, string $sqliteType) use ($pdo, $mysql): void {
+        $have = $mysql
+            ? $pdo->query("SHOW COLUMNS FROM {$table}")->fetchAll(PDO::FETCH_COLUMN)
+            : $pdo->query("PRAGMA table_info({$table})")->fetchAll(PDO::FETCH_COLUMN, 1);
+        if (!in_array($col, $have, true)) $pdo->exec("ALTER TABLE {$table} ADD COLUMN {$col} " . ($mysql ? $mysqlType : $sqliteType));
+    };
+    $add('live_sessions', 'engine', "VARCHAR(16) NOT NULL DEFAULT 'decart'", "TEXT NOT NULL DEFAULT 'decart'");
+    $add('live_sessions', 'provider_key', 'VARCHAR(64) NULL', 'TEXT NULL');
+    $add('live_sessions', 'call_room', 'VARCHAR(64) NULL', 'TEXT NULL');
+    $add('users', 'telegram_chat_id', 'VARCHAR(32) NULL', 'TEXT NULL');
 }
 
 function sleek_is_duplicate(PDOException $e): bool

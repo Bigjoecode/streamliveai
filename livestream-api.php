@@ -43,8 +43,8 @@ switch ($_POST['action'] ?? '') {
     case 'start':
         sleek_jobs_sweep();   // settle anything expired before checking "already live"
 
-        if (!sleek_decart_configured()) {
-            sleek_jobs_log('livestream blocked: Decart api_key is empty in inc/config.php');
+        if (!sleek_live_engines()) {
+            sleek_jobs_log('livestream blocked: no Decart or XMAX key is set');
             $reply(503, ['ok' => false, 'error' => 'Livestream is temporarily unavailable. You haven\'t been charged.']);
         }
         if (!isset($_POST['consent'])) {
@@ -52,8 +52,9 @@ switch ($_POST['action'] ?? '') {
         }
 
         $minutes = $int('minutes');
+        $engine  = is_string($_POST['engine'] ?? null) ? $_POST['engine'] : (string) array_key_first(sleek_live_engines());
         try {
-            $s = sleek_live_start($uid, $minutes, time());
+            $s = sleek_live_start($uid, $minutes, time(), $engine);
         } catch (InvalidArgumentException $e) {
             $reply(422, ['ok' => false, 'error' => $e->getMessage()]);
         } catch (SleekInsufficientCredits) {
@@ -65,7 +66,54 @@ switch ($_POST['action'] ?? '') {
             $reply(502, ['ok' => false, 'error' => 'Livestream couldn\'t start right now. Your credits were refunded — please try again.']);
         }
 
-        $reply(200, ['ok' => true, 'job' => $s['job'], 'token' => $s['token'], 'model' => $s['model'], 'speed' => $s['speed'], 'maxSeconds' => $s['max_seconds']]);
+        $reply(200, ['ok' => true, 'job' => $s['job'], 'token' => $s['token'], 'engine' => $s['engine'], 'provider' => $s['provider'],
+                     'model' => $s['model'], 'speed' => $s['speed'], 'maxSeconds' => $s['max_seconds'],
+                     'environment' => (string) sleek_config('xmax')['environment']]);
+
+    case 'call_open':
+        try {
+            $call = sleek_live_call_open($int('job'), $uid, (string) $user['name']);
+        } catch (InvalidArgumentException $e) {
+            $reply(409, ['ok' => false, 'error' => $e->getMessage()]);
+        } catch (SleekProviderError $e) {
+            sleek_jobs_log('group call failed for job #' . $int('job') . ': ' . $e->getMessage());
+            $reply(502, ['ok' => false, 'error' => 'Couldn\'t create a call link right now. Please try again.']);
+        }
+        $reply(200, ['ok' => true] + $call);
+
+    case 'tg_status':
+        require_once __DIR__ . '/inc/live-telegram.php';
+        if (!sleek_tg_bot_ready()) $reply(200, ['ok' => true, 'available' => false]);
+        $linked = sleek_tg_user_chat($uid) !== null;
+        $reply(200, ['ok' => true, 'available' => true, 'linked' => $linked, 'link' => $linked ? null : sleek_tg_link_url()]);
+
+    case 'tg_check':
+        require_once __DIR__ . '/inc/live-telegram.php';
+        $reply(200, ['ok' => true, 'linked' => sleek_tg_user_chat($uid) !== null || sleek_tg_link_check($uid)]);
+
+    case 'tg_unlink':
+        require_once __DIR__ . '/inc/live-telegram.php';
+        sleek_tg_unlink($uid);
+        $reply(200, ['ok' => true, 'linked' => false, 'link' => sleek_tg_link_url()]);
+
+    case 'tg_send':
+        require_once __DIR__ . '/inc/live-telegram.php';
+        // Only clips recorded from this user's own recent session.
+        $own = sleek_db()->prepare('SELECT 1 FROM live_sessions WHERE job_id = ? AND user_id = ? AND created_at > ?');
+        $own->execute([$int('job'), $uid, time() - 3 * 3600]);
+        if (!$own->fetchColumn()) $reply(403, ['ok' => false, 'error' => 'Record a clip from a live session first.']);
+
+        $f = $_FILES['clip'] ?? null;
+        if (!is_array($f) || ($f['error'] ?? 1) !== UPLOAD_ERR_OK || !is_uploaded_file($f['tmp_name'])) {
+            $reply(422, ['ok' => false, 'error' => 'The clip didn\'t upload. Keep it under a minute and try again.']);
+        }
+        if ($f['size'] > SLEEK_TG_CLIP_MAX_BYTES) $reply(422, ['ok' => false, 'error' => 'That clip is too large. Keep it under a minute.']);
+        $mime = (new finfo(FILEINFO_MIME_TYPE))->file($f['tmp_name']) ?: '';
+        $mime = match ($mime) { 'video/mp4', 'application/mp4' => 'video/mp4', 'video/webm', 'audio/webm' => 'video/webm', default => '' };
+        if ($mime === '') $reply(422, ['ok' => false, 'error' => 'That recording isn\'t a video Telegram accepts.']);
+
+        [$sent, $err] = sleek_tg_send_clip($uid, $f['tmp_name'], $mime, isset($_POST['note']), min(60, $int('seconds')));
+        $sent ? $reply(200, ['ok' => true, 'message' => 'Sent to your Telegram.']) : $reply(502, ['ok' => false, 'error' => $err]);
 
     case 'tick':
         sleek_live_diag_log($int('job'), $uid, is_string($_POST['diag'] ?? null) ? $_POST['diag'] : '');
